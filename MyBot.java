@@ -9,6 +9,23 @@ import page.codeberg.terratactician_expandoria.world.CubeCoordinate;
 import page.codeberg.terratactician_expandoria.world.tiles.*;
 import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
 
+/*
+ * Observations:
+ *  - only one placement of a tile is allowed per turn
+ *  - memory is more abundant than time!
+ *
+ * TODOs:
+ * - [ ] separate the different tile type placements into functions.
+ * - [ ] track the usable non isolated tiles ourselves, so that iteration is
+ * fast
+ * - [ ] track the groups of different tiles together ourselves
+ * - [ ] find a way to integrate the needs of the tracked groups surrounding the
+ * considered usable tile when picking which usable tile to use
+ * - [ ] investigate more abstract considerations for groups:
+ *    - [ ] prefer packed groups
+ *    - [ ] prefer patterns of groups
+ * */
+
 public class MyBot extends ChallengeBot {
 
   @Override
@@ -18,7 +35,6 @@ public class MyBot extends ChallengeBot {
 
   @Override
   public String getStudentName() {
-    // Bitte gebe deinen Namen an.
     return "Ayham A.F.";
   }
 
