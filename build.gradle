@@ -1,0 +1,34 @@
+plugins {
+    id 'application'
+}
+
+def bot = providers.gradleProperty("bot").getOrElse("MyBot")
+def mode = providers.gradleProperty("mode").getOrElse("challenge")
+def allowed_modes = ["challenge", "creative"];
+assert (mode in allowed_modes)  
+
+repositories {
+    mavenCentral()
+
+    maven { url = "https://codeberg.org/api/packages/terratactician-expandoria/maven" }
+}
+
+dependencies {
+    implementation "page.codeberg.terratactician_expandoria:TTEJavaBot:0.3.0"
+}
+
+application {
+}
+
+
+tasks.named('compileJava') {
+    source = "${bot}.java" 
+}
+
+tasks.named('run', JavaExec) {
+    dependsOn 'compileJava'
+    mainClass = "page.codeberg.terratactician_expandoria.App"
+    def path = bot.split("/");
+    args = ["--${mode}", "build/classes/java/main/${path[path.length-1]}"]
+}
+
