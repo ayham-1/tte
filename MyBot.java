@@ -6,6 +6,7 @@ import java.util.Set;
 import page.codeberg.terratactician_expandoria.*;
 import page.codeberg.terratactician_expandoria.bots.*;
 import page.codeberg.terratactician_expandoria.world.CubeCoordinate;
+import page.codeberg.terratactician_expandoria.world.Metrics;
 import page.codeberg.terratactician_expandoria.world.tiles.*;
 import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
 
@@ -16,7 +17,7 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *
  * TODOs:
  * - [x] separate the different tile type placements into functions.
- * - [ ] track the usable non isolated tiles ourselves, so that iteration is
+ * - [x] track the usable non isolated tiles ourselves, so that iteration is
  * fast
  * - [ ] track the groups of different tiles together ourselves
  * - [ ] find a way to integrate the needs of the tracked groups surrounding the
@@ -27,6 +28,7 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  * */
 
 public class MyBot extends ChallengeBot {
+  static final boolean PRINT_DEBUG = false;
 
   @Override
   public int getMatrikel() {
@@ -43,43 +45,41 @@ public class MyBot extends ChallengeBot {
     return "Bob the Bot the Builder";
   }
 
+  // API vars
   World world;
   Controller controller;
 
+  //// state vars
+  int round = 0;
   boolean is_first = true;
+
+  /* placable coords that are not-isolated and manually updated every placed
+   * tile and every round change */
+  Set<CubeCoordinate> coords_placable = new HashSet<CubeCoordinate>();
+
+  Metrics resource_current = new Metrics();
+  Metrics resource_target = new Metrics();
+  Metrics resource_growth = new Metrics();
+  double round_time_left = 0.0f;
+
+  boolean reachable_money = false;
+  boolean reachable_food = false;
+  boolean reachable_materials = false;
+
+  double resource_perc_money = 0;
+  double resource_perc_food = 0;
+  double resource_perc_materials = 0;
+
   @Override
   public void executeTurn(World world, Controller controller) {
     this.world = world;
     this.controller = controller;
+    this.update_resources_stat();
 
-    var current = world.getResources();
-    var target = world.getTargetResources();
-    var growth = world.getResourcesRate();
-    var time_left = world.getRoundTime();
-
-    boolean money =
-        (current.money + (growth.money * time_left)) >= target.money;
-
-    boolean food = (current.food + (growth.food * time_left)) >= target.food;
-
-    boolean materials = (current.materials + (growth.materials * time_left)) >=
-                        target.materials;
-
-    double perc_money = current.money / target.money;
-    double perc_food = current.food / target.food;
-    double perc_materials = current.materials / target.materials;
-
-    // System.out.println("[current] money=" + current.money + " food=" +
-    //                    current.food + " materials=" + current.materials);
-
-    // System.out.println("[target] money=" + target.money + " food=" +
-    //                    target.food + " materials=" + target.materials);
-    // System.out.println("[growth] money=" + growth.money + " food=" +
-    //                    growth.food + " materials=" + growth.materials);
-    // System.out.println("[perc] money=" + String.format("%.3f", perc_money) +
-    //                    " food=" + String.format("%.3f", perc_food) +
-    //                    " materials=" + String.format("%.3f",
-    //                    perc_materials));
+    if (this.round != world.getRound()) {
+      this.round = world.getRound();
+      this.update_coords_placable();
+    }
 
     if (world.getHand().isEmpty() && world.getRedrawTime() <= 0) {
       controller.redraw();
@@ -98,12 +98,14 @@ public class MyBot extends ChallengeBot {
       // determine if we need to redraw since we are not hitting the target
       // resources
       var cost = world.getRedrawCosts();
-      boolean redrawable = current.money >= cost.money &&
-                           current.food >= current.food &&
-                           current.materials >= cost.materials;
+      boolean redrawable = this.resource_current.money >= cost.money &&
+                           this.resource_current.food >= cost.food &&
+                           this.resource_current.materials >= cost.materials;
       if (redrawable)
-        if ((!money || !food || !materials) && perc_money > 0.75 &&
-            perc_food > 0.75 && perc_materials > 0.75)
+        if ((!this.reachable_money || !this.reachable_food ||
+             !this.reachable_materials) &&
+            this.resource_perc_money > 0.75 && this.resource_perc_food > 0.75 &&
+            this.resource_perc_materials > 0.75)
           controller.redraw();
     }
 
@@ -112,7 +114,7 @@ public class MyBot extends ChallengeBot {
         return;
 
       if (is_first) {
-        controller.placeTile(new CubeCoordinate());
+        this.place_tile(card, new CubeCoordinate());
         is_first = false;
         return;
       }
@@ -148,77 +150,37 @@ public class MyBot extends ChallengeBot {
   }
 
   void place_marketplace() {
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
-          continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
-
-        controller.placeTile(TileType.Marketplace, cplacable);
-        return;
-      }
+    for (var cplacable : this.coords_placable) {
+      this.place_tile(TileType.Marketplace, cplacable);
+      return;
     }
   }
 
   void place_grass() {
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
-          continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
-
-        controller.placeTile(TileType.Grass, cplacable);
-        return;
-      }
+    for (var cplacable : this.coords_placable) {
+      this.place_tile(TileType.Grass, cplacable);
+      return;
     }
   }
 
   void place_stonehill() {
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
-          continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
-
-        controller.placeTile(TileType.StoneHill, cplacable);
-        return;
-      }
+    for (var cplacable : this.coords_placable) {
+      this.place_tile(TileType.StoneHill, cplacable);
+      return;
     }
   }
 
   void place_stonemountain() {
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
-          continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
-
-        controller.placeTile(TileType.StoneMountain, cplacable);
-        return;
-      }
+    for (var cplacable : this.coords_placable) {
+      this.place_tile(TileType.StoneMountain, cplacable);
+      return;
     }
   }
 
   void place_stonerocks() {
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
-          continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
-
-        controller.placeTile(TileType.StoneRocks, cplacable);
-        return;
-      }
+    for (var cplacable : this.coords_placable) {
+      this.place_tile(TileType.StoneRocks, cplacable);
+      return;
     }
   }
 
@@ -226,124 +188,91 @@ public class MyBot extends ChallengeBot {
     // beside other wheats
     CubeCoordinate max_cplacable = null;
     int max_gc = 0; // max is less than 8 here
-    ArrayList<Tile> map_reversed = new ArrayList<>();
-    for (var t : world.getMap())
-      map_reversed.add(t);
-    Collections.reverse(map_reversed);
+    ArrayList<CubeCoordinate> placable_reversed = new ArrayList<>();
+    for (var t : this.coords_placable)
+      placable_reversed.add(t);
+    Collections.reverse(placable_reversed);
 
-    for (var placed_tile : map_reversed) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
-          continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
+    for (var cplacable : placable_reversed) {
+      if (max_cplacable == null)
+        max_cplacable = cplacable;
+
+      for (var cneighbor : cplacable.getRing(1)) {
+        var ct = world.getMap().at(cneighbor);
+        if (ct == null || ct.getTileType() != TileType.Wheat)
           continue;
 
-        if (max_cplacable == null)
+        int gc = group_count(TileType.Wheat, cneighbor, world);
+        if (gc >= max_gc && gc <= 8) {
           max_cplacable = cplacable;
-
-        for (var cneighbor : cplacable.getRing(1)) {
-          var ct = world.getMap().at(cneighbor);
-          if (ct == null || ct.getTileType() != TileType.Wheat)
-            continue;
-
-          int gc = group_count(TileType.Wheat, cneighbor, world);
-          if (gc >= max_gc && gc <= 8) {
-            max_cplacable = cplacable;
-            max_gc = gc;
-          }
+          max_gc = gc;
         }
       }
     }
 
-    System.out.println("want wheat at: " + max_cplacable);
-    controller.placeTile(TileType.Wheat, max_cplacable);
+    if (max_cplacable != null)
+      this.place_tile(TileType.Wheat, max_cplacable);
   }
 
   void place_forest() {
     // beside the forest
     CubeCoordinate max_cplacable = null;
     int max_count = 0; // max here is max
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
-          continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
+    for (var cplacable : this.coords_placable) {
+      if (max_cplacable == null)
+        max_cplacable = cplacable;
 
-        if (max_cplacable == null)
-          max_cplacable = cplacable;
-
-        int count = 0;
-        for (var cneighbor : cplacable.getRing(1)) {
-          var ct = world.getMap().at(cneighbor);
-          if (ct == null || ct.getTileType() != TileType.Forest ||
-              ct.getTileType() == TileType.Wheat)
-            continue;
-          count++;
-        }
-        if (count >= max_count) {
-          max_count = count;
-          max_cplacable = cplacable;
-        }
+      int count = 0;
+      for (var cneighbor : cplacable.getRing(1)) {
+        var ct = world.getMap().at(cneighbor);
+        if (ct == null || ct.getTileType() != TileType.Forest ||
+            ct.getTileType() == TileType.Wheat)
+          continue;
+        count++;
+      }
+      if (count >= max_count) {
+        max_count = count;
+        max_cplacable = cplacable;
       }
     }
-    System.out.println("want forest at: " + max_cplacable);
-    controller.placeTile(TileType.Forest, max_cplacable);
+    if (max_cplacable != null)
+      this.place_tile(TileType.Forest, max_cplacable);
   }
 
   void place_doublehouse() {
     // best 3 neighbors
     CubeCoordinate best_cplacable = null;
     int best_count = 0; // best is 3 here
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
-          continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
+    for (var cplacable : this.coords_placable) {
+      if (best_cplacable == null)
+        best_cplacable = cplacable;
 
-        if (best_cplacable == null)
-          best_cplacable = cplacable;
-
-        int count = 0;
-        for (var cneighbor : cplacable.getRing(1)) {
-          var ct = world.getMap().at(cneighbor);
-          if (ct == null || (ct.getTileType() != TileType.DoubleHouse &&
-                             ct.getTileType() != TileType.SmallHouse))
-            continue;
-          count++;
-        }
-        if (count == 3) {
-          best_cplacable = cplacable;
-          best_count = 3;
-          break;
-        } else if (count >= best_count) {
-          best_cplacable = cplacable;
-          best_count = count;
-        }
+      int count = 0;
+      for (var cneighbor : cplacable.getRing(1)) {
+        var ct = world.getMap().at(cneighbor);
+        if (ct == null || (ct.getTileType() != TileType.DoubleHouse &&
+                           ct.getTileType() != TileType.SmallHouse))
+          continue;
+        count++;
+      }
+      if (count == 3) {
+        best_cplacable = cplacable;
+        best_count = 3;
+        break;
+      } else if (count >= best_count) {
+        best_cplacable = cplacable;
+        best_count = count;
       }
     }
 
-    System.out.println("want dhouse at: " + best_cplacable);
     if (best_cplacable != null)
-      controller.placeTile(TileType.DoubleHouse, best_cplacable);
+      this.place_tile(TileType.DoubleHouse, best_cplacable);
   }
 
   void place_smallhouse() {
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
-          continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
-
-        controller.placeTile(TileType.SmallHouse, cplacable);
-        return;
-      }
+    for (var cplacable : this.coords_placable) {
+      this.place_tile(TileType.SmallHouse, cplacable);
+      return;
     }
   }
 
@@ -354,133 +283,106 @@ public class MyBot extends ChallengeBot {
     int best_count_wheat = 0;                               // should be highest
     CubeCoordinate best_cplacable = null;
 
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
+    for (var cplacable : this.coords_placable) {
+      if (best_cplacable == null)
+        best_cplacable = cplacable;
+
+      int count_wheat = 0;
+      int count_windmills_per_wheat = 0;
+      for (var cneighbor : cplacable.getArea(3)) {
+        var ct = world.getMap().at(cneighbor);
+        if (ct == null || ct.getTileType() != TileType.Wheat)
           continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
+        count_wheat++;
+
+        for (var wheat_neighbor : cneighbor.getArea(3)) {
+          var wct = world.getMap().at(wheat_neighbor);
+          if (wct == null || wct.getTileType() != TileType.Windmill)
+            continue;
+          count_windmills_per_wheat++;
+        }
+      }
+
+      int count_forest = 0;
+      for (var cneighbor : cplacable.getRing(1)) {
+        var ct = world.getMap().at(cneighbor);
+        if (ct == null || ct.getTileType() != TileType.Forest)
           continue;
+        count_forest++;
+      }
 
-        if (best_cplacable == null)
-          best_cplacable = cplacable;
+      if (count_wheat >= best_count_wheat &&
+          count_windmills_per_wheat <= best_count_windmills_per_wheat &&
+          count_forest <= best_count_forest) {
+        best_count_wheat = count_wheat;
+        best_count_windmills_per_wheat = count_windmills_per_wheat;
+        best_count_forest = count_forest;
 
-        int count_wheat = 0;
-        int count_windmills_per_wheat = 0;
-        for (var cneighbor : cplacable.getArea(3)) {
-          var ct = world.getMap().at(cneighbor);
-          if (ct == null || ct.getTileType() != TileType.Wheat)
-            continue;
-          count_wheat++;
-
-          for (var wheat_neighbor : cneighbor.getArea(3)) {
-            var wct = world.getMap().at(wheat_neighbor);
-            if (wct == null || wct.getTileType() != TileType.Windmill)
-              continue;
-            count_windmills_per_wheat++;
-          }
-        }
-
-        int count_forest = 0;
-        for (var cneighbor : cplacable.getRing(1)) {
-          var ct = world.getMap().at(cneighbor);
-          if (ct == null || ct.getTileType() != TileType.Forest)
-            continue;
-          count_forest++;
-        }
-
-        if (count_wheat >= best_count_wheat &&
-            count_windmills_per_wheat <= best_count_windmills_per_wheat &&
-            count_forest <= best_count_forest) {
-          best_count_wheat = count_wheat;
-          best_count_windmills_per_wheat = count_windmills_per_wheat;
-          best_count_forest = count_forest;
-
-          best_cplacable = cplacable;
-        }
+        best_cplacable = cplacable;
       }
     }
 
-    System.out.println("want windmill at: " + best_cplacable);
     if (best_cplacable != null)
-      controller.placeTile(TileType.Windmill, best_cplacable);
+      this.place_tile(TileType.Windmill, best_cplacable);
   }
 
   void place_beehive() {
     // max wheet or forest in 2 radius
     CubeCoordinate best_cplacable = null;
     int best_count = 0;
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
+    for (var cplacable : this.coords_placable) {
+      if (best_cplacable == null)
+        best_cplacable = cplacable;
+
+      int count = 0;
+      for (var cneighbor : cplacable.getArea(2)) {
+        var ct = world.getMap().at(cneighbor);
+        if (ct == null || (ct.getTileType() != TileType.Forest &&
+                           ct.getTileType() != TileType.Wheat))
           continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
+        count++;
+      }
 
-        if (best_cplacable == null)
-          best_cplacable = cplacable;
-
-        int count = 0;
-        for (var cneighbor : cplacable.getArea(2)) {
-          var ct = world.getMap().at(cneighbor);
-          if (ct == null || (ct.getTileType() != TileType.Forest &&
-                             ct.getTileType() != TileType.Wheat))
-            continue;
-          count++;
-        }
-
-        if (count >= best_count) {
-          best_count = count;
-          best_cplacable = cplacable;
-        }
+      if (count >= best_count) {
+        best_count = count;
+        best_cplacable = cplacable;
       }
     }
 
-    System.out.println("want beehive at: " + best_cplacable);
     if (best_cplacable != null)
-      controller.placeTile(TileType.Beehive, best_cplacable);
+      this.place_tile(TileType.Beehive, best_cplacable);
   }
 
   void place_stonequarry() {
     // max level of stone
     CubeCoordinate best_cplacable = null;
     int best_level = 0;
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
+    for (var cplacable : this.coords_placable) {
+      if (best_cplacable == null)
+        best_cplacable = cplacable;
+
+      int level = 0;
+      for (var cneighbor : cplacable.getRing(1)) {
+        var ct = world.getMap().at(cneighbor);
+        if (ct == null)
           continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
-          continue;
 
-        if (best_cplacable == null)
-          best_cplacable = cplacable;
+        if (ct.getTileType() == TileType.StoneRocks)
+          level = 1;
+        else if (ct.getTileType() == TileType.StoneHill)
+          level = 2;
+        else if (ct.getTileType() == TileType.StoneMountain)
+          level = 3;
+      }
 
-        int level = 0;
-        for (var cneighbor : cplacable.getRing(1)) {
-          var ct = world.getMap().at(cneighbor);
-          if (ct == null)
-            continue;
-
-          if (ct.getTileType() == TileType.StoneRocks)
-            level = 1;
-          else if (ct.getTileType() == TileType.StoneHill)
-            level = 2;
-          else if (ct.getTileType() == TileType.StoneMountain)
-            level = 3;
-        }
-
-        if (level >= best_level) {
-          best_level = level;
-          best_cplacable = cplacable;
-        }
+      if (level >= best_level) {
+        best_level = level;
+        best_cplacable = cplacable;
       }
     }
 
-    System.out.println("want quarry at: " + best_cplacable);
     if (best_cplacable != null)
-      controller.placeTile(TileType.StoneQuarry, best_cplacable);
+      this.place_tile(TileType.StoneQuarry, best_cplacable);
   }
 
   void place_moai() {
@@ -488,54 +390,64 @@ public class MyBot extends ChallengeBot {
     CubeCoordinate best_cplacable = null;
     int best_unique = 0;
     int best_houses = 0;
-    for (var placed_tile : world.getMap()) {
-      for (var cplacable : placed_tile.getCoordinate().getRing(1)) {
-        if (!world.getBuildArea().contains(cplacable))
+    for (var cplacable : this.coords_placable) {
+      if (best_cplacable == null)
+        best_cplacable = cplacable;
+
+      Set<TileType> unique = new HashSet<>();
+      for (var cneighbor : cplacable.getArea(4)) {
+        var ct = world.getMap().at(cneighbor);
+        if (ct == null)
           continue;
-        var t = world.getMap().at(cplacable);
-        if (t != null)
+        unique.add(ct.getTileType());
+      }
+
+      int houses = 0;
+      for (var cneighbor : cplacable.getArea(3)) {
+        var ct = world.getMap().at(cneighbor);
+        if (ct == null)
           continue;
-
-        // TODO: getBuildArea gives entire board fix others!!!
-        if (!world.getMap().getNeighbors(cplacable).hasNext())
-          continue;
-
-        if (best_cplacable == null)
-          best_cplacable = cplacable;
-
-        Set<TileType> unique = new HashSet<>();
-        for (var cneighbor : cplacable.getArea(4)) {
-          var ct = world.getMap().at(cneighbor);
-          if (ct == null)
-            continue;
-          unique.add(ct.getTileType());
+        if (ct.getTileType() == TileType.SmallHouse ||
+            ct.getTileType() == TileType.DoubleHouse) {
+          houses++;
         }
+      }
 
-        int houses = 0;
-        for (var cneighbor : cplacable.getArea(3)) {
-          var ct = world.getMap().at(cneighbor);
-          if (ct == null)
-            continue;
-          if (ct.getTileType() == TileType.SmallHouse ||
-              ct.getTileType() == TileType.DoubleHouse) {
-            houses++;
-          }
-        }
-
-        if (unique.size() >= best_unique && houses >= best_houses) {
-          best_unique = unique.size();
-          best_houses = houses;
-          best_cplacable = cplacable;
-        }
+      if (unique.size() >= best_unique && houses >= best_houses) {
+        best_unique = unique.size();
+        best_houses = houses;
+        best_cplacable = cplacable;
       }
     }
 
-    System.out.println("want moai at: " + best_cplacable);
     if (best_cplacable != null)
-      controller.placeTile(TileType.Moai, best_cplacable);
+      this.place_tile(TileType.Moai, best_cplacable);
   }
 
-  void place_tile(TileType type, CubeCoordinate coord) {}
+  void place_tile(TileType type, CubeCoordinate coord) {
+    System.out.println("want " + type + " at " + coord);
+    controller.placeTile(type, coord);
+
+    if (this.coords_placable.contains(coord))
+      this.coords_placable.remove(coord);
+
+    for (var cring : coord.getRing(1)) {
+      if (world.getMap().at(cring) == null &&
+          world.getBuildArea().contains(cring))
+        this.coords_placable.add(cring);
+    }
+
+    // this.coords_placable.removeIf(t -> !world.getBuildArea().contains(t));
+  }
+
+  void update_coords_placable() {
+    for (var c : world.getBuildArea()) {
+      if (world.getMap().at(c) != null)
+        continue;
+      if (world.getMap().getNeighbors(c).hasNext() == true)
+        this.coords_placable.add(c);
+    }
+  }
 
   void group_count_set(TileType type, CubeCoordinate start,
                        Set<CubeCoordinate> coords, World world) {
@@ -563,5 +475,54 @@ public class MyBot extends ChallengeBot {
     group_count_set(type, start, coord, world);
 
     return coord.size();
+  }
+
+  void update_resources_stat() {
+    this.resource_current = world.getResources();
+    this.resource_target = world.getTargetResources();
+    this.resource_growth = world.getResourcesRate();
+    this.round_time_left = world.getRoundTime();
+
+    this.reachable_money =
+        (this.resource_current.money +
+         (this.resource_growth.money * this.round_time_left)) >=
+        this.resource_target.money;
+
+    this.reachable_food =
+        (this.resource_current.food +
+         (this.resource_growth.food * this.round_time_left)) >=
+        this.resource_target.food;
+
+    this.reachable_materials =
+        (this.resource_current.materials +
+         (this.resource_growth.materials * this.round_time_left)) >=
+        this.resource_target.materials;
+
+    this.resource_perc_money =
+        this.resource_current.money / this.resource_target.money;
+    this.resource_perc_food =
+        this.resource_current.food / this.resource_target.food;
+    this.resource_perc_materials =
+        this.resource_current.materials / this.resource_target.materials;
+
+    if (PRINT_DEBUG) {
+      System.out.println("[current] money=" + this.resource_current.money +
+                         " food=" + this.resource_current.food +
+                         " materials=" + this.resource_current.materials);
+
+      System.out.println("[target] money=" + this.resource_target.money +
+                         " food=" + this.resource_target.food +
+                         " materials=" + this.resource_target.materials);
+
+      System.out.println("[growth] money=" + this.resource_growth.money +
+                         " food=" + this.resource_growth.food +
+                         " materials=" + this.resource_growth.materials);
+
+      System.out.println(
+          "[perc] money=" + String.format("%.3f", this.resource_perc_money) +
+          " food=" + String.format("%.3f", this.resource_perc_food) +
+          " materials=" +
+          String.format("%.3f", this.resource_perc_materials));
+    }
   }
 }
