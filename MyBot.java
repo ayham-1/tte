@@ -19,6 +19,7 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - more tiles placed earlier == better
  *
  *  TODOs:
+ *  - solve housing crisis
  *  - quarries should place themselves when no available stones with empty
  * possibility
  *  - stones should pick beside quarries, keeping in mind empty spaces for their
@@ -296,6 +297,7 @@ public class MyBot extends ChallengeBot {
     public void add_tile(TileType type) {
       CubeCoordinate best_cplacable = null;
       int best_packing = 0;
+      int low_avoid = Integer.MAX_VALUE;
       for (var cplacable : this.coords_placable) {
         if (best_cplacable == null)
           best_cplacable = cplacable;
@@ -305,8 +307,13 @@ public class MyBot extends ChallengeBot {
           if (this.tiles.containsKey(cring))
             packing++;
         }
-        if (packing >= best_packing) {
+
+        int avoid = this.bot.avoid_coord_for_other_group(TileType.SmallHouse,
+                                                         cplacable, this);
+
+        if (packing >= best_packing && avoid <= low_avoid) {
           best_packing = packing;
+          low_avoid = avoid;
           best_cplacable = cplacable;
         }
       }
@@ -378,7 +385,7 @@ public class MyBot extends ChallengeBot {
 
     @Override
     public boolean fine_neighbor(TileType type) {
-      return type != TileType.DoubleHouse;
+      return type != TileType.SmallHouse;
     }
   }
 
@@ -621,7 +628,6 @@ public class MyBot extends ChallengeBot {
         if ((!this.reachable_money || !this.reachable_food ||
              !this.reachable_materials) &&
             this.must_win) {
-          // controller.redraw();
           this.redrawn = true;
         } else {
           double money = this.resource_current.money +
@@ -635,12 +641,12 @@ public class MyBot extends ChallengeBot {
 
           double offset = (this.growth_expectancy / (this.round * 1.5f));
 
-          if (money - cost.money >=
+          if (money - cost.money >
                   this.resource_target.money * (1.0f - offset) &&
-              food - cost.food >= this.resource_target.food * (1.0f - offset) &&
-              mat - cost.materials >=
+              food - cost.food > this.resource_target.food * (1.0f - offset) &&
+              mat - cost.materials >
                   this.resource_target.materials * (1.0f - offset))
-            if (this.coords_placable.size() >= 5) // don't have extra on hand
+            if (this.coords_placable.size() > 5) // don't have extra on hand
               controller.redraw();
         }
       }
@@ -882,34 +888,12 @@ public class MyBot extends ChallengeBot {
         best_cplacable = cplacable;
 
       int count = 0;
-      boolean use = true;
       for (var cneighbor : cplacable.getRing(1)) {
         var ct = world.getMap().at(cneighbor);
-        if (ct == null || (ct.getTileType() != TileType.DoubleHouse &&
-                           ct.getTileType() != TileType.SmallHouse))
+        if (ct == null || (ct.getTileType() != TileType.SmallHouse))
           continue;
         count++;
-
-        if (ct.getTileType() == TileType.DoubleHouse) {
-          int houses = 0;
-          for (var cring : cneighbor.getRing(1)) {
-            var t = world.getMap().at(cring);
-            if (t == null)
-              continue;
-            if (t.getTileType() == TileType.SmallHouse ||
-                t.getTileType() == TileType.DoubleHouse)
-              houses++;
-          }
-          if (houses >= 3) {
-            use = false;
-            break;
-          }
-        }
-        if (!use)
-          continue;
       }
-      if (!use)
-        continue;
 
       int avoid = this.avoid_coord_for_other_group(TileType.DoubleHouse,
                                                    cplacable, null);
