@@ -19,14 +19,15 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - more tiles placed earlier == better
  *
  *  TODOs:
- *  - dynamic growth expectancy
- *  - implement empty tile counting
- *  - wheat groups should pick to begin new groups on most empty
  *  - quarries should place themselves when no available stones with empty
  * possibility
  *  - stones should pick beside quarries, keeping in mind empty spaces for their
  * quarries
+ *
+ *  - dynamic growth expectancy
+ *  - find a way to order the placement of cards in hands
  *  - find optimal new wheat group, before deciding whether to make a new one
+ *
  *  - marketplaces should pick beside most variety
  *  - marketplaces should be configured
  *
@@ -149,6 +150,30 @@ public class MyBot extends ChallengeBot {
     }
 
     @Override
+    public boolean addable() {
+      boolean o = super.addable();
+
+      for (var cplacable : this.coords_placable) {
+        boolean could_be_placable = true;
+        for (var cring : cplacable.getRing(1)) {
+          var t = this.bot.world.getMap().at(cring);
+          if (t == null || this.tiles.containsKey(cring))
+            continue;
+
+          if (t.getTileType() == TileType.Wheat) {
+            could_be_placable = false;
+            break;
+          }
+        }
+
+        if (could_be_placable)
+          return o;
+      }
+
+      return false;
+    }
+
+    @Override
     public boolean accepts(TileType type) {
       return type == TileType.Wheat;
     }
@@ -227,8 +252,7 @@ public class MyBot extends ChallengeBot {
 
     @Override
     public boolean fine_neighbor(TileType type) {
-      // return type == TileType.Beehive;
-      return type == TileType.Forest;
+      return type == TileType.Beehive;
     }
   }
 
@@ -520,7 +544,7 @@ public class MyBot extends ChallengeBot {
   boolean is_first = true;
   boolean must_win = false;
   boolean redrawn = false;
-  double growth_expectancy = 0.125f;
+  double growth_expectancy = 0.12;
 
   /* stores all groups that are tracked on the map,
    * there is no garantue that all tiles are in a group,
@@ -535,6 +559,11 @@ public class MyBot extends ChallengeBot {
   Metrics resource_current = new Metrics();
   Metrics resource_target = new Metrics();
   Metrics resource_growth = new Metrics();
+
+  // per entire hand delta growth change
+  Metrics resource_growth_delta = new Metrics();
+  Metrics resource_growth_last = new Metrics();
+
   double round_time_left = 0.0f;
 
   boolean reachable_money = false;
@@ -604,7 +633,7 @@ public class MyBot extends ChallengeBot {
           double mat = this.resource_current.materials +
                        this.resource_growth.materials * this.round_time_left;
 
-          double offset = (this.growth_expectancy / this.round);
+          double offset = (this.growth_expectancy / (this.round * 1.5f));
 
           if (money - cost.money >=
                   this.resource_target.money * (1.0f - offset) &&
@@ -768,6 +797,7 @@ public class MyBot extends ChallengeBot {
     int max_windmill = 0;
     int max_beehive = 0;
     for (var cplacable : this.coords_placable) {
+      boolean wheat_neighbors = false;
 
       int windmill = 0;
       int beehive = 0;
@@ -779,7 +809,15 @@ public class MyBot extends ChallengeBot {
           windmill++;
         else if (t.getTileType() == TileType.Beehive)
           beehive++;
+        else if (t.getTileType() == TileType.Wheat) {
+          wheat_neighbors = true;
+          break;
+        }
       }
+
+      // refuse to start new wheat group beside wheats
+      if (wheat_neighbors)
+        continue;
 
       int avoid =
           this.avoid_coord_for_other_group(TileType.Wheat, cplacable, null);
@@ -966,7 +1004,7 @@ public class MyBot extends ChallengeBot {
           this.avoid_coord_for_other_group(TileType.Windmill, cplacable, null);
 
       if (count_wheat >= best_count_wheat &&
-          count_windmills_per_wheat <= best_count_windmills_per_wheat &&
+          /*count_windmills_per_wheat <= best_count_windmills_per_wheat &&*/
           count_forest <= best_count_forest && avoid <= low_avoid) {
         best_count_wheat = count_wheat;
         best_count_windmills_per_wheat = count_windmills_per_wheat;
@@ -985,6 +1023,7 @@ public class MyBot extends ChallengeBot {
     // max wheet or forest in 2 radius
     CubeCoordinate best_cplacable = null;
     int best_count = 0;
+    int low_avoid = Integer.MAX_VALUE;
     for (var cplacable : this.coords_placable) {
       if (best_cplacable == null)
         best_cplacable = cplacable;
@@ -998,8 +1037,12 @@ public class MyBot extends ChallengeBot {
         count++;
       }
 
-      if (count >= best_count) {
+      int avoid =
+          this.avoid_coord_for_other_group(TileType.Beehive, cplacable, null);
+
+      if (count >= best_count && avoid <= low_avoid) {
         best_count = count;
+        low_avoid = avoid;
         best_cplacable = cplacable;
       }
     }
