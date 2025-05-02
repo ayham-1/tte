@@ -15,18 +15,17 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  * Observations:
  *  - only one placement of a tile is allowed per turn
  *  - memory is more abundant than time!
+ *  - the longer a tile is placed the better,
+ *  - more tiles placed earlier == better
  *
- * TODOs:
- * - [x] separate the different tile type placements into functions.
- * - [x] track the usable non isolated tiles ourselves, so that iteration is
- * fast
- * - [ ] track the groups of different tiles together ourselves
- *    - [ ] declare a class that represents a group
- *    - [ ] find a way to integrate the needs of the tracked groups surrounding
- * the considered usable tile when picking which usable tile to use
- * - [ ] investigate more abstract considerations for groups:
- *    - [ ] prefer packed groups
- *    - [ ] prefer patterns of groups
+ *  TODOs:
+ *  - implement empty tile counting
+ *  - wheat groups should pick to begin new groups on most empty
+ *  - stones should pick beside quarries, keeping in mind empty spaces for their
+ * quarries
+ *  - marketplaces should pick beside most variety
+ *  - marketplaces should be configured
+ *
  * */
 
 public class MyBot extends ChallengeBot {
@@ -298,6 +297,56 @@ public class MyBot extends ChallengeBot {
     }
   }
 
+  class SHouseGroup extends Group {
+    /* Represents a small house group, optimal means:
+     * - three houses
+     **/
+
+    SHouseGroup(MyBot bot, CubeCoordinate new_coord) {
+      super(bot);
+      this.add_tile(TileType.SmallHouse, new_coord);
+    }
+
+    @Override
+    public double calc_score() {
+      int score = this.tiles.size();
+      return score;
+    }
+
+    @Override
+    public double calc_new_score(TileType newtype, CubeCoordinate coord) {
+      return 0;
+    }
+
+    @Override
+    public void add_tile(TileType type) {
+      CubeCoordinate best_cplacable = null;
+      int low_avoid = Integer.MAX_VALUE;
+      for (var cplacable : this.coords_placable) {
+        if (best_cplacable == null)
+          best_cplacable = cplacable;
+
+        int avoid = this.bot.avoid_coord_for_other_group(TileType.SmallHouse,
+                                                         cplacable, null);
+        if (avoid <= low_avoid) {
+          low_avoid = avoid;
+          best_cplacable = cplacable;
+        }
+      }
+      this.add_tile(TileType.SmallHouse, best_cplacable);
+    }
+
+    @Override
+    public boolean accepts(TileType type) {
+      return type == TileType.SmallHouse;
+    }
+
+    @Override
+    public boolean fine_neighbor(TileType type) {
+      return type == TileType.DoubleHouse;
+    }
+  }
+
   class StoneRocksGroup extends Group {
     /* Represents a stone rocks group, optimal means:
      * - beside one quarry
@@ -516,6 +565,10 @@ public class MyBot extends ChallengeBot {
     if (!controller.actionPossible())
       return;
 
+    // this.setup_marketplaces();
+    if (!this.controller.actionPossible())
+      return;
+
     if (world.getHand().isEmpty() && world.getRedrawTime() > 5) {
       // determine if we need to redraw since we are not hitting the target
       // resources
@@ -526,19 +579,29 @@ public class MyBot extends ChallengeBot {
       if (redrawable) {
         if ((!this.reachable_money || !this.reachable_food ||
              !this.reachable_materials) &&
-            this.must_win && !this.redrawn) {
+            this.must_win) {
           // controller.redraw();
           this.redrawn = true;
+        } else {
+          double money = this.resource_current.money +
+                         this.resource_growth.money * this.round_time_left;
 
-          // this.setup_marketplaces();
-          if (!this.controller.actionPossible())
-            return;
-        } else if (cost.money <=
-                   Math.min(this.resource_current.food,
-                            Math.min(this.resource_current.money,
-                                     this.resource_perc_materials)) *
-                       0.1) {
-          controller.redraw();
+          double food = this.resource_current.food +
+                        this.resource_growth.food * this.round_time_left;
+
+          double mat = this.resource_current.materials +
+                       this.resource_growth.materials * this.round_time_left;
+
+          double growth_expectancy = 0.15f;
+          double offset = (growth_expectancy / this.round);
+
+          if (money - cost.money >=
+                  this.resource_target.money * (1.0f - offset) &&
+              food - cost.food >= this.resource_target.food * (1.0f - offset) &&
+              mat - cost.materials >=
+                  this.resource_target.materials * (1.0f - offset))
+            if (this.coords_placable.size() >= 5) // don't have extra on hand
+              controller.redraw();
         }
       }
     }
@@ -799,6 +862,24 @@ public class MyBot extends ChallengeBot {
   }
 
   void place_smallhouse() {
+    Group max_group = null;
+    double max_score = 0;
+    for (var group : this.groups) {
+      if (group.accepts(TileType.SmallHouse) && group.addable()) {
+        double score = group.calc_new_score(
+            TileType.SmallHouse, group.coords_placable.iterator().next());
+        if (score >= max_score) {
+          max_score = score;
+          max_group = group;
+        }
+      }
+    }
+
+    if (max_group != null) {
+      max_group.add_tile(TileType.SmallHouse);
+      return;
+    }
+
     CubeCoordinate best_cplacable = null;
     int low_avoid = Integer.MAX_VALUE;
     for (var cplacable : this.coords_placable) {
@@ -809,7 +890,10 @@ public class MyBot extends ChallengeBot {
         best_cplacable = cplacable;
       }
     }
-    this.place_tile(TileType.SmallHouse, best_cplacable);
+    if (best_cplacable != null) {
+      SHouseGroup new_group = new SHouseGroup(this, best_cplacable);
+      this.groups.add(new_group);
+    }
   }
 
   void place_windmill() {
@@ -975,7 +1059,8 @@ public class MyBot extends ChallengeBot {
       if (t.getTileType() != TileType.Marketplace)
         continue;
 
-      if (!this.reachable_money && !selling.get(t.getCoordinate())) {
+      if (!this.reachable_money && (!selling.containsKey(t.getCoordinate()) ||
+                                    !selling.get(t.getCoordinate()))) {
         controller.configureMarket(t.getCoordinate(),
                                    this.reachable_food ? 1.0f : 0.0f,
                                    this.reachable_materials ? 1.0f : 0.0f);
