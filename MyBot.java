@@ -19,10 +19,14 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - more tiles placed earlier == better
  *
  *  TODOs:
+ *  - dynamic growth expectancy
  *  - implement empty tile counting
  *  - wheat groups should pick to begin new groups on most empty
+ *  - quarries should place themselves when no available stones with empty
+ * possibility
  *  - stones should pick beside quarries, keeping in mind empty spaces for their
  * quarries
+ *  - find optimal new wheat group, before deciding whether to make a new one
  *  - marketplaces should pick beside most variety
  *  - marketplaces should be configured
  *
@@ -151,9 +155,7 @@ public class MyBot extends ChallengeBot {
 
     @Override
     public boolean fine_neighbor(TileType type) {
-      if (this.tiles.size() != 9)
-        return type == TileType.Beehive || type == TileType.Windmill;
-      return type != TileType.Wheat;
+      return type == TileType.Beehive || type == TileType.Windmill;
     }
   }
 
@@ -225,7 +227,8 @@ public class MyBot extends ChallengeBot {
 
     @Override
     public boolean fine_neighbor(TileType type) {
-      return type == TileType.Beehive;
+      // return type == TileType.Beehive;
+      return type == TileType.Forest;
     }
   }
 
@@ -322,14 +325,22 @@ public class MyBot extends ChallengeBot {
     public void add_tile(TileType type) {
       CubeCoordinate best_cplacable = null;
       int low_avoid = Integer.MAX_VALUE;
+      int low_packing = Integer.MAX_VALUE;
       for (var cplacable : this.coords_placable) {
         if (best_cplacable == null)
           best_cplacable = cplacable;
 
+        int packing = 0;
+        for (var cring : cplacable.getRing(1)) {
+          if (this.tiles.containsKey(cring))
+            packing++;
+        }
+
         int avoid = this.bot.avoid_coord_for_other_group(TileType.SmallHouse,
                                                          cplacable, null);
-        if (avoid <= low_avoid) {
+        if (avoid <= low_avoid && packing <= low_packing) {
           low_avoid = avoid;
+          low_packing = packing;
           best_cplacable = cplacable;
         }
       }
@@ -343,7 +354,7 @@ public class MyBot extends ChallengeBot {
 
     @Override
     public boolean fine_neighbor(TileType type) {
-      return type == TileType.DoubleHouse;
+      return type != TileType.DoubleHouse;
     }
   }
 
@@ -509,6 +520,7 @@ public class MyBot extends ChallengeBot {
   boolean is_first = true;
   boolean must_win = false;
   boolean redrawn = false;
+  double growth_expectancy = 0.125f;
 
   /* stores all groups that are tracked on the map,
    * there is no garantue that all tiles are in a group,
@@ -592,8 +604,7 @@ public class MyBot extends ChallengeBot {
           double mat = this.resource_current.materials +
                        this.resource_growth.materials * this.round_time_left;
 
-          double growth_expectancy = 0.15f;
-          double offset = (growth_expectancy / this.round);
+          double offset = (this.growth_expectancy / this.round);
 
           if (money - cost.money >=
                   this.resource_target.money * (1.0f - offset) &&
@@ -751,13 +762,32 @@ public class MyBot extends ChallengeBot {
       return;
     }
 
+    // new wheat group
     CubeCoordinate best_cplacable = null;
     int low_avoid = Integer.MAX_VALUE;
+    int max_windmill = 0;
+    int max_beehive = 0;
     for (var cplacable : this.coords_placable) {
+
+      int windmill = 0;
+      int beehive = 0;
+      for (var cring : cplacable.getRing(1)) {
+        var t = world.getMap().at(cring);
+        if (t == null)
+          continue;
+        if (t.getTileType() == TileType.Windmill)
+          windmill++;
+        else if (t.getTileType() == TileType.Beehive)
+          beehive++;
+      }
+
       int avoid =
           this.avoid_coord_for_other_group(TileType.Wheat, cplacable, null);
-      if (avoid <= low_avoid) {
+      if (avoid <= low_avoid && windmill >= max_windmill &&
+          beehive >= max_beehive) {
         low_avoid = avoid;
+        max_windmill = windmill;
+        max_beehive = beehive;
         best_cplacable = cplacable;
       }
     }
