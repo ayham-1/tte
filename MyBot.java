@@ -138,11 +138,21 @@ public class MyBot extends ChallengeBot {
         if (best_cplacable == null)
           best_cplacable = cplacable;
 
+        boolean has_foriegn = false;
         int packing = 0;
         for (var cring : cplacable.getRing(1)) {
+          var t = this.bot.world.getMap().at(cring);
           if (this.tiles.containsKey(cring))
             packing++;
+          else if (t != null && t.getTileType() == TileType.Wheat) {
+            has_foriegn = true;
+            break;
+          }
         }
+
+        // avoid joining with other groups
+        if (has_foriegn)
+          continue;
 
         int avoid = this.bot.avoid_coord_for_other_group(TileType.Wheat,
                                                          cplacable, null);
