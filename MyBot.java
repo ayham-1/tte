@@ -197,7 +197,8 @@ public class MyBot extends ChallengeBot {
 
     @Override
     public boolean fine_neighbor(TileType type) {
-      return type == TileType.Beehive || type == TileType.Windmill;
+      return type == TileType.Beehive || type == TileType.Windmill ||
+          type == TileType.Marketplace;
     }
   }
 
@@ -269,7 +270,7 @@ public class MyBot extends ChallengeBot {
 
     @Override
     public boolean fine_neighbor(TileType type) {
-      return type == TileType.Beehive;
+      return type == TileType.Beehive || type == TileType.Marketplace;
     }
   }
 
@@ -657,6 +658,11 @@ public class MyBot extends ChallengeBot {
     if (!controller.actionPossible())
       return;
 
+    if (this.world.getHand().isEmpty()) {
+      for (var market : this.marketplaces.keySet())
+        this.marketplaces.put(market, false);
+    }
+
     this.setup_marketplaces();
     if (!this.controller.actionPossible())
       return;
@@ -773,6 +779,7 @@ public class MyBot extends ChallengeBot {
           houses++;
         else if (t.getTileType() == TileType.Wheat ||
                  t.getTileType() == TileType.Forest ||
+                 t.getTileType() == TileType.Beehive ||
                  t.getTileType() == TileType.StoneQuarry)
           resources++;
       }
