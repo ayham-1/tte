@@ -19,7 +19,10 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - more tiles placed earlier == better
  *
  *  TODOs:
+ *  - dynamic growth expectancy
  *  - solve housing crisis
+ *  - marketplaces should be configured not only once
+ *
  *  - maoi effect don't stack
  *  - quarries should place themselves when no available stones with empty
  * possibility
@@ -27,14 +30,11 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  * quarries
  *  - new forest (also groups) should prefer to circle beehives
  *
- *  - dynamic growth expectancy
  *  - find a way to order the placement of cards in hands
  *  - find optimal new wheat group, before deciding whether to make a new one
  *
  *  - avoid beehives closing forests too much
  *
- *  - marketplaces should pick beside most variety
- *  - marketplaces should be configured
  *
  *  - investigate sectors
  *
@@ -400,9 +400,9 @@ public class MyBot extends ChallengeBot {
           dcount++;
         }
       }
-      if (type == TileType.SmallHouse && sscore < 4 - dcount)
+      if (type == TileType.SmallHouse && sscore < 3)
         return true;
-      if (type == TileType.DoubleHouse && dscore != dcount)
+      if (type == TileType.DoubleHouse && dscore <= 1)
         return true;
       return false;
     }
@@ -575,7 +575,6 @@ public class MyBot extends ChallengeBot {
   boolean is_first = true;
   boolean must_win = false;
   boolean redrawn = false;
-  double growth_expectancy = 0.12;
 
   /* stores all groups that are tracked on the map,
    * there is no garantue that all tiles are in a group,
@@ -585,7 +584,8 @@ public class MyBot extends ChallengeBot {
 
   /* placable coords that are not-isolated, manually updated every placed
    * tile and every round change */
-  Set<CubeCoordinate> coords_placable = new HashSet<CubeCoordinate>();
+  Set<CubeCoordinate> coords_placable = new HashSet<>();
+  HashMap<CubeCoordinate, Boolean> marketplaces = new HashMap<>();
 
   Metrics resource_current = new Metrics();
   Metrics resource_target = new Metrics();
@@ -594,6 +594,8 @@ public class MyBot extends ChallengeBot {
   // per entire hand delta growth change
   Metrics resource_growth_delta = new Metrics();
   Metrics resource_growth_last = new Metrics();
+  int resource_delta_count = 0;
+  boolean growth_last_updated = false;
 
   double round_time_left = 0.0f;
 
@@ -604,6 +606,8 @@ public class MyBot extends ChallengeBot {
   double resource_perc_money = 0;
   double resource_perc_food = 0;
   double resource_perc_materials = 0;
+
+  boolean event_empty_hand_start = false;
 
   @Override
   public void executeTurn(World world, Controller controller) {
@@ -622,6 +626,22 @@ public class MyBot extends ChallengeBot {
       this.update_coords_placable();
     }
 
+    if (!this.world.getHand().isEmpty()) {
+      this.resource_growth_last = this.resource_growth;
+      growth_last_updated = true;
+    } else if (this.world.getHand().isEmpty() && growth_last_updated) {
+      this.resource_growth_delta.money +=
+          this.resource_growth.money - this.resource_growth_last.money;
+
+      this.resource_growth_delta.food +=
+          this.resource_growth.food - this.resource_growth_last.food;
+
+      this.resource_growth_delta.materials +=
+          this.resource_growth.materials - this.resource_growth_last.materials;
+      this.resource_delta_count++;
+      growth_last_updated = false;
+    }
+
     this.update_resources_stat();
 
     if (world.getHand().isEmpty() && world.getRedrawTime() <= 0) {
@@ -637,11 +657,11 @@ public class MyBot extends ChallengeBot {
     if (!controller.actionPossible())
       return;
 
-    // this.setup_marketplaces();
+    this.setup_marketplaces();
     if (!this.controller.actionPossible())
       return;
 
-    if (world.getHand().isEmpty() && world.getRedrawTime() > 5) {
+    if (world.getHand().isEmpty()) {
       // determine if we need to redraw since we are not hitting the target
       // resources
       var cost = world.getRedrawCosts();
@@ -663,14 +683,31 @@ public class MyBot extends ChallengeBot {
           double mat = this.resource_current.materials +
                        this.resource_growth.materials * this.round_time_left;
 
-          double offset = (this.growth_expectancy / (this.round * 1.75f));
+          double offset_m =
+              (this.resource_growth_delta.money / this.resource_delta_count) *
+              this.round_time_left;
 
-          if (money - cost.money >
-                  this.resource_target.money * (1.0f - offset) &&
-              food - cost.food > this.resource_target.food * (1.0f - offset) &&
-              mat - cost.materials >
-                  this.resource_target.materials * (1.0f - offset))
-            if (this.coords_placable.size() > 5) // don't have extra on hand
+          double offset_f =
+              (this.resource_growth_delta.food / this.resource_delta_count) *
+              this.round_time_left;
+
+          double offset_mat = (this.resource_growth_delta.materials /
+                               this.resource_delta_count) *
+                              this.round_time_left;
+
+          System.out.println(offset_m);
+          System.out.println(offset_f);
+          System.out.println(offset_mat);
+
+          double early_bias = 1 - (Math.pow(Math.E, -(this.round * 2.5)));
+
+          if ((money - cost.money) + offset_m >
+                  this.resource_target.money * early_bias &&
+              (food - cost.food) + offset_f >
+                  this.resource_target.food * early_bias &&
+              (mat - cost.materials) + offset_mat >
+                  this.resource_target.materials * early_bias)
+            if (this.coords_placable.size() >= 5) // don't have extra on hand
               controller.redraw();
         }
       }
@@ -719,19 +756,42 @@ public class MyBot extends ChallengeBot {
   void place_marketplace() {
     CubeCoordinate best_cplacable = null;
     int low_avoid = Integer.MAX_VALUE;
+    int high_houses = 0;
+    int high_resources = 0;
     for (var cplacable : this.coords_placable) {
       if (best_cplacable == null)
         best_cplacable = cplacable;
 
+      int houses = 0;
+      int resources = 0;
+      for (var cring : cplacable.getRing(3)) {
+        var t = this.world.getMap().at(cring);
+        if (t == null)
+          continue;
+        if (t.getTileType() == TileType.SmallHouse ||
+            t.getTileType() == TileType.DoubleHouse)
+          houses++;
+        else if (t.getTileType() == TileType.Wheat ||
+                 t.getTileType() == TileType.Forest ||
+                 t.getTileType() == TileType.StoneQuarry)
+          resources++;
+      }
+
       int avoid = this.avoid_coord_for_other_group(TileType.Marketplace,
                                                    cplacable, null);
-      if (avoid <= low_avoid) {
+      if (avoid <= low_avoid && houses >= high_houses &&
+          resources >= high_resources) {
         low_avoid = avoid;
+        high_houses = houses;
+        high_resources = resources;
         best_cplacable = cplacable;
       }
     }
 
-    this.place_tile(TileType.Marketplace, best_cplacable);
+    if (best_cplacable != null) {
+      this.place_tile(TileType.Marketplace, best_cplacable);
+      this.marketplaces.put(best_cplacable, false);
+    }
   }
 
   void place_grass() {
@@ -924,16 +984,27 @@ public class MyBot extends ChallengeBot {
 
     CubeCoordinate best_cplacable = null;
     int low_avoid = Integer.MAX_VALUE;
+    int high_markets = 0;
     for (var cplacable : this.coords_placable) {
       if (best_cplacable == null)
         best_cplacable = cplacable;
 
+      int markets = 0;
+      for (var cring : cplacable.getArea(3)) {
+        var t = this.world.getMap().at(cring);
+        if (t == null)
+          continue;
+        if (t.getTileType() == TileType.Marketplace)
+          markets++;
+      }
+
       int avoid = this.avoid_coord_for_other_group(TileType.DoubleHouse,
                                                    cplacable, null);
 
-      if (avoid <= low_avoid) {
+      if (avoid <= low_avoid && markets >= high_markets) {
         best_cplacable = cplacable;
         low_avoid = avoid;
+        high_markets = markets;
       }
     }
 
@@ -967,26 +1038,31 @@ public class MyBot extends ChallengeBot {
     CubeCoordinate best_cplacable = null;
     int low_avoid = Integer.MAX_VALUE;
     int low_count = 0;
+    int high_markets = 0;
     for (var cplacable : this.coords_placable) {
       if (best_cplacable == null)
         best_cplacable = cplacable;
 
       int count = 0;
+      int markets = 0;
       for (var cring : cplacable.getRing(1)) {
         var t = this.world.getMap().at(cring);
         if (t == null)
           continue;
         if (t.getTileType() == TileType.SmallHouse)
           count++;
+        if (t.getTileType() == TileType.Marketplace)
+          markets++;
       }
 
       int avoid = this.avoid_coord_for_other_group(TileType.SmallHouse,
                                                    cplacable, null);
 
-      if (avoid <= low_avoid && low_count >= count) {
+      if (avoid <= low_avoid && low_count >= count && markets >= high_markets) {
         best_cplacable = cplacable;
         low_avoid = avoid;
         low_count = count;
+        high_markets = markets;
       }
     }
 
@@ -1024,6 +1100,8 @@ public class MyBot extends ChallengeBot {
           count_windmills_per_wheat++;
         }
       }
+      if (count_windmills_per_wheat >= 3)
+        continue;
 
       int count_forest = 0;
       for (var cneighbor : cplacable.getRing(1)) {
@@ -1036,8 +1114,8 @@ public class MyBot extends ChallengeBot {
       int avoid =
           this.avoid_coord_for_other_group(TileType.Windmill, cplacable, null);
 
-      if (count_wheat >= best_count_wheat &&
-          /*count_windmills_per_wheat <= best_count_windmills_per_wheat &&*/
+      if (count_wheat >= best_count_wheat && count_windmills_per_wheat <= 2 &&
+          count_windmills_per_wheat <= best_count_windmills_per_wheat &&
           count_forest <= best_count_forest && avoid <= low_avoid) {
         best_count_wheat = count_wheat;
         best_count_windmills_per_wheat = count_windmills_per_wheat;
@@ -1230,6 +1308,27 @@ public class MyBot extends ChallengeBot {
     }
   }
 
+  void setup_marketplaces() {
+    for (var market : this.marketplaces.entrySet()) {
+      if (market.getValue() == false) {
+        double perc_food =
+            Math.min((this.resource_growth.food - this.resource_growth.money) /
+                         this.resource_growth.money,
+                     1);
+        double perc_mat = Math.min(
+            (this.resource_growth.materials - this.resource_growth.money) /
+                this.resource_growth.money,
+            1);
+        this.controller.configureMarket(market.getKey(),
+                                        perc_food >= 0 ? perc_food : 0,
+                                        perc_mat >= 0 ? perc_mat : 0);
+        this.marketplaces.put(market.getKey(), true);
+        if (!this.controller.actionPossible())
+          return;
+      }
+    }
+  }
+
   void group_count_set(TileType type, CubeCoordinate start,
                        Set<CubeCoordinate> coords, World world) {
 
@@ -1286,6 +1385,11 @@ public class MyBot extends ChallengeBot {
     this.resource_perc_materials =
         this.resource_current.materials / this.resource_target.materials;
 
+    if (this.world.getHand().isEmpty() && event_empty_hand_start) {
+
+      this.resource_growth_last = this.resource_growth;
+    }
+
     if (PRINT_DEBUG) {
       System.out.println("[current] money=" + this.resource_current.money +
                          " food=" + this.resource_current.food +
@@ -1298,6 +1402,11 @@ public class MyBot extends ChallengeBot {
       System.out.println("[growth] money=" + this.resource_growth.money +
                          " food=" + this.resource_growth.food +
                          " materials=" + this.resource_growth.materials);
+
+      System.out.println(
+          "[delta] money=" + this.resource_growth_delta.money +
+          " food=" + this.resource_growth_delta.food +
+          " materials=" + this.resource_growth_delta.materials);
 
       System.out.println(
           "[perc] money=" + String.format("%.3f", this.resource_perc_money) +
