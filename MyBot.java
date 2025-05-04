@@ -17,17 +17,23 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - memory is more abundant than time!
  *  - the longer a tile is placed the better,
  *  - more tiles placed earlier == better
+ *  - marketplaces convert food/material to money, and are actually very
+ * important mid-game
  *
  *  TODOs:
- *  - dynamic growth expectancy
- *  - solve housing crisis
- *  - marketplaces should be configured not only once
- *
- *  - maoi effect don't stack
+ *  - windmills are being placed without wheat
+ *  - marketplaces MUST have houses
+ *  - force marketplaces to be placed beside generators of resources we can sell
  *  - quarries should place themselves when no available stones with empty
  * possibility
  *  - stones should pick beside quarries, keeping in mind empty spaces for their
  * quarries
+ *  - give more value for higher resources growth available when placing
+ * marketplaces
+ *  - solve housing crisis
+ *  - find a better marketplace calculation
+ *
+ *  - maoi effect don't stack
  *  - new forest (also groups) should prefer to circle beehives
  *
  *  - find a way to order the placement of cards in hands
@@ -157,7 +163,7 @@ public class MyBot extends ChallengeBot {
         int avoid = this.bot.avoid_coord_for_other_group(TileType.Wheat,
                                                          cplacable, null);
 
-        if (packing >= best_packing && avoid <= low_avoid) {
+        if (packing <= best_packing && avoid <= low_avoid) {
           best_packing = packing;
           low_avoid = avoid;
           best_cplacable = cplacable;
@@ -760,6 +766,8 @@ public class MyBot extends ChallengeBot {
   }
 
   void place_marketplace() {
+    boolean prefers_food = this.market_prefers_food();
+
     CubeCoordinate best_cplacable = null;
     int low_avoid = Integer.MAX_VALUE;
     int high_houses = 0;
@@ -778,11 +786,16 @@ public class MyBot extends ChallengeBot {
             t.getTileType() == TileType.DoubleHouse)
           houses++;
         else if (t.getTileType() == TileType.Wheat ||
-                 t.getTileType() == TileType.Forest ||
-                 t.getTileType() == TileType.Beehive ||
+                 t.getTileType() == TileType.Beehive)
+          resources += (prefers_food) ? 2 : 1;
+        else if (t.getTileType() == TileType.Forest ||
                  t.getTileType() == TileType.StoneQuarry)
-          resources++;
+          resources += (prefers_food) ? 2 : 1;
       }
+
+      // no use of having no houses
+      if (houses == 0)
+        continue;
 
       int avoid = this.avoid_coord_for_other_group(TileType.Marketplace,
                                                    cplacable, null);
@@ -1089,9 +1102,6 @@ public class MyBot extends ChallengeBot {
     CubeCoordinate best_cplacable = null;
 
     for (var cplacable : this.coords_placable) {
-      if (best_cplacable == null)
-        best_cplacable = cplacable;
-
       int count_wheat = 0;
       int count_windmills_per_wheat = 0;
       for (var cneighbor : cplacable.getArea(3)) {
@@ -1107,7 +1117,7 @@ public class MyBot extends ChallengeBot {
           count_windmills_per_wheat++;
         }
       }
-      if (count_windmills_per_wheat >= 3)
+      if (count_wheat == 0)
         continue;
 
       int count_forest = 0;
@@ -1116,12 +1126,15 @@ public class MyBot extends ChallengeBot {
         if (ct == null || ct.getTileType() != TileType.Forest)
           continue;
         count_forest++;
+        break;
       }
+      if (count_forest > 0)
+        continue;
 
       int avoid =
           this.avoid_coord_for_other_group(TileType.Windmill, cplacable, null);
 
-      if (count_wheat >= best_count_wheat && count_windmills_per_wheat <= 2 &&
+      if (count_wheat >= best_count_wheat &&
           count_windmills_per_wheat <= best_count_windmills_per_wheat &&
           count_forest <= best_count_forest && avoid <= low_avoid) {
         best_count_wheat = count_wheat;
@@ -1315,17 +1328,37 @@ public class MyBot extends ChallengeBot {
     }
   }
 
+  boolean market_prefers_food() {
+    double perc_food = Math.min(Math.pow(Math.E, -(this.resource_growth.money /
+                                                   this.resource_growth.food)),
+                                1);
+    double perc_mat =
+        Math.min(Math.pow(Math.E, -(this.resource_growth.money /
+                                    this.resource_growth.materials)),
+                 1);
+    return perc_food >= perc_mat;
+  }
+
   void setup_marketplaces() {
     for (var market : this.marketplaces.entrySet()) {
       if (market.getValue() == false) {
+        // double perc_food =
+        //     Math.min((this.resource_growth.food - this.resource_growth.money)
+        //     /
+        //                  this.resource_growth.money,
+        //              1);
+        // double perc_mat = Math.min(
+        //     (this.resource_growth.materials - this.resource_growth.money) /
+        //         this.resource_growth.money,
+        //     1);
         double perc_food =
-            Math.min((this.resource_growth.food - this.resource_growth.money) /
-                         this.resource_growth.money,
+            Math.min(Math.pow(Math.E, -(this.resource_growth.money /
+                                        this.resource_growth.food)),
                      1);
-        double perc_mat = Math.min(
-            (this.resource_growth.materials - this.resource_growth.money) /
-                this.resource_growth.money,
-            1);
+        double perc_mat =
+            Math.min(Math.pow(Math.E, -(this.resource_growth.money /
+                                        this.resource_growth.materials)),
+                     1);
         this.controller.configureMarket(market.getKey(),
                                         perc_food >= 0 ? perc_food : 0,
                                         perc_mat >= 0 ? perc_mat : 0);
