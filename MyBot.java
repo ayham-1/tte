@@ -607,7 +607,7 @@ public class MyBot extends ChallengeBot {
               1 -
               (Math.pow(
                   Math.E,
-                  -((this.round + (this.world.getRoundTime() / 60.0f)) * 2.5)));
+                  -((this.round + (this.world.getRoundTime() / 60.0f)) * 2)));
 
           if ((money - cost.money) + offset_m >
                   this.resource_target.money * early_bias &&
