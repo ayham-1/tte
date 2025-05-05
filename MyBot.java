@@ -20,11 +20,13 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - marketplaces convert food/material to money, and are actually very
  * important mid-game
  *
- *  TODOs:
- *  - Wheats are not being added to wheat groups (out of build area attempt
- * suspected)
- *  - marketplaces MUST have houses
- *  - force marketplaces to be placed beside generators of resources we can sell
+ * Current:
+ *
+ * TODOs:
+ *  - make score calculations reflect actual production by using math from docs
+ *  - investigate sectors
+ *    - find a way to optimize multiple group placements
+ *
  *  - quarries should place themselves when no available stones with empty
  * possibility
  *  - stones should pick beside quarries, keeping in mind empty spaces for their
@@ -37,13 +39,9 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - maoi effect don't stack
  *  - new forest (also groups) should prefer to circle beehives
  *
- *  - find a way to order the placement of cards in hands
- *  - find optimal new wheat group, before deciding whether to make a new one
  *
  *  - avoid beehives closing forests too much
  *
- *
- *  - investigate sectors
  *
  * */
 
@@ -73,6 +71,8 @@ public class MyBot extends ChallengeBot {
     double last_score = 0.0f;
 
     Group(MyBot bot) { this.bot = bot; }
+
+    ResourceType res_type;
 
     abstract double calc_score();
     abstract double calc_new_score(TileType newtype, CubeCoordinate coord);
@@ -115,12 +115,15 @@ public class MyBot extends ChallengeBot {
   class WheatGroup extends Group {
     /* Represents a Wheat group, optimal means:
      * - have 9 connected Wheat Tiles
-     * - group members all close together
+     * - group members all close together (really?)
      **/
 
     WheatGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
       super(bot);
-      this.add_tile(TileType.Wheat, new_coord);
+      super.res_type = ResourceType.Food;
+
+      // called when suggestion is resolved
+      // this.add_tile(TileType.Wheat, new_coord);
     }
 
     @Override
@@ -223,7 +226,6 @@ public class MyBot extends ChallengeBot {
 
     ForestGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
       super(bot);
-      this.add_tile(TileType.Forest, new_coord);
     }
 
     @Override
@@ -299,7 +301,6 @@ public class MyBot extends ChallengeBot {
     HousingGroup(MyBot bot, TileType type, CubeCoordinate new_coord)
         throws Exception {
       super(bot);
-      this.add_tile(type, new_coord);
     }
 
     @Override
@@ -437,6 +438,23 @@ public class MyBot extends ChallengeBot {
     }
   }
 
+  public enum ResourceType { Food, Materials, Money }
+
+  class PlacementSuggestion {
+    CubeCoordinate coord = null;
+    double delta_growth = 0.0f;
+    TileType tile_type;
+    Group group = null;
+
+    PlacementSuggestion(TileType typ, CubeCoordinate coord, double delta,
+                        Group group) {
+      this.tile_type = typ;
+      this.coord = coord;
+      this.delta_growth = delta;
+      this.group = group;
+    }
+  };
+
   // API vars
   World world;
   Controller controller;
@@ -457,6 +475,12 @@ public class MyBot extends ChallengeBot {
    * tile and every round change */
   Set<CubeCoordinate> coords_placable = new HashSet<>();
   HashMap<CubeCoordinate, Boolean> marketplaces = new HashMap<>();
+
+  /* per hand suggestions per resource type */
+  Set<PlacementSuggestion> suggests_food = new HashSet<>();
+  Set<PlacementSuggestion> suggests_materials = new HashSet<>();
+  Set<PlacementSuggestion> suggests_money = new HashSet<>();
+  Set<PlacementSuggestion> suggests_grass = new HashSet<>(); // ugh
 
   Metrics resource_current = new Metrics();
   Metrics resource_target = new Metrics();
@@ -485,6 +509,7 @@ public class MyBot extends ChallengeBot {
     this.world = world;
     this.controller = controller;
 
+    // track lives
     if (this.round != world.getRound()) {
       this.round = world.getRound();
       if (!this.reachable_money || !this.reachable_food ||
@@ -497,6 +522,7 @@ public class MyBot extends ChallengeBot {
       this.update_coords_placable();
     }
 
+    // calculate per hand growth delta
     if (!this.world.getHand().isEmpty()) {
       this.resource_growth_last = this.resource_growth;
       growth_last_updated = true;
@@ -515,11 +541,13 @@ public class MyBot extends ChallengeBot {
 
     this.update_resources_stat();
 
+    // always redraw when free
     if (world.getHand().isEmpty() && world.getRedrawTime() <= 0) {
       controller.redraw();
       return;
     }
 
+    // always collect rewards no matter what
     for (var reward : world.getRewards()) {
       controller.collectReward(reward.getCoordinate());
       if (!controller.actionPossible())
@@ -528,18 +556,22 @@ public class MyBot extends ChallengeBot {
     if (!controller.actionPossible())
       return;
 
+    // force update marketplaces when hand is empty
     if (this.world.getHand().isEmpty()) {
-      for (var market : this.marketplaces.keySet())
-        this.marketplaces.put(market, false);
+      if (!this.marketplaces.values().contains(false)) // lol maybe use variable
+        for (var market : this.marketplaces.keySet())
+          this.marketplaces.put(market, false);
+
+      // only update marketplaces if hand is empty, don't block placements
+      this.setup_marketplaces();
     }
 
-    this.setup_marketplaces();
     if (!this.controller.actionPossible())
       return;
 
     if (world.getHand().isEmpty()) {
       // determine if we need to redraw since we are not hitting the target
-      // resources
+      // resources [CURRENTLY DISABLE]
       var cost = world.getRedrawCosts();
       boolean redrawable = this.resource_current.money >= cost.money &&
                            this.resource_current.food >= cost.food &&
@@ -571,7 +603,11 @@ public class MyBot extends ChallengeBot {
                                this.resource_delta_count) *
                               this.round_time_left;
 
-          double early_bias = 1 - (Math.pow(Math.E, -(this.round * 2.5)));
+          double early_bias =
+              1 -
+              (Math.pow(
+                  Math.E,
+                  -((this.round + (this.world.getRoundTime() / 60.0f)) * 2.5)));
 
           if ((money - cost.money) + offset_m >
                   this.resource_target.money * early_bias &&
@@ -585,15 +621,21 @@ public class MyBot extends ChallengeBot {
       }
     }
 
+    // make world zero as first tile
+    if (is_first) {
+      this.coords_placable.add(new CubeCoordinate());
+      is_first = false;
+    }
+
+    // TODO(ayham-1): clear on empty hand, and remove suggestions when done
+    this.suggests_food.clear();
+    this.suggests_money.clear();
+    this.suggests_materials.clear();
+    this.suggests_grass.clear(); // ugh 3
+
     for (var card : world.getHand()) {
       if (!controller.actionPossible())
         return;
-
-      if (is_first) {
-        // this.place_tile(card, new CubeCoordinate());
-        this.coords_placable.add(new CubeCoordinate());
-        is_first = false;
-      }
 
       if (card == TileType.Marketplace) {
         this.place_marketplace();
@@ -623,7 +665,94 @@ public class MyBot extends ChallengeBot {
         this.place_moai();
       }
     }
+
+    Set<PlacementSuggestion> suggestions_most = null;
+    Set<PlacementSuggestion> suggestions_mid = null;
+    Set<PlacementSuggestion> suggestions_least = null;
+    if (this.resource_growth.money <= this.resource_growth.food &&
+        this.resource_growth.money <= this.resource_growth.materials) {
+      suggestions_most = this.suggests_money;
+      if (this.resource_growth.food <= this.resource_growth.materials) {
+        suggestions_mid = this.suggests_food;
+        suggestions_least = this.suggests_materials;
+      } else {
+        suggestions_mid = this.suggests_materials;
+        suggestions_least = this.suggests_food;
+      }
+    } else if (this.resource_growth.food <= this.resource_growth.money &&
+               this.resource_growth.food <= this.resource_growth.materials) {
+      suggestions_most = this.suggests_food;
+      if (this.resource_growth.money <= this.resource_growth.materials) {
+        suggestions_mid = this.suggests_money;
+        suggestions_least = this.suggests_materials;
+      } else {
+        suggestions_mid = this.suggests_materials;
+        suggestions_least = this.suggests_money;
+      }
+    } else if (this.resource_growth.materials <= this.resource_growth.money &&
+               this.resource_growth.materials <= this.resource_growth.food) {
+      suggestions_most = this.suggests_materials;
+      if (this.resource_growth.money <= this.resource_growth.food) {
+        suggestions_mid = this.suggests_money;
+        suggestions_least = this.suggests_food;
+      } else {
+        suggestions_mid = this.suggests_food;
+        suggestions_least = this.suggests_money;
+      }
+    }
+
+    if (!this.controller.actionPossible())
+      return;
+
+    this.process_suggestions(suggestions_most);
+    suggestions_most.clear();
+
+    if (!this.controller.actionPossible())
+      return;
+
+    this.process_suggestions(suggestions_mid);
+    suggestions_mid.clear();
+
+    if (!this.controller.actionPossible())
+      return;
+
+    this.process_suggestions(suggestions_least);
+    suggestions_least.clear();
+
+    if (!this.controller.actionPossible())
+      return;
+
+    this.process_suggestions(this.suggests_grass); // ugh 2
   }
+
+  void process_suggestions(Set<PlacementSuggestion> suggestions_group) {
+    if (!suggestions_group.iterator().hasNext())
+      return;
+
+    PlacementSuggestion suggest = suggestions_group.iterator().next();
+    try {
+      if (suggest.coord != null && suggest.group != null) {
+        // new group
+        suggest.group.add_tile(suggest.tile_type, suggest.coord);
+        this.groups.add(suggest.group);
+      } else if (suggest.coord == null && suggest.group != null) {
+        // use already existing group
+        suggest.group.add_tile(suggest.tile_type);
+      } else if (suggest.coord != null && suggest.group == null) {
+        // place without tile
+        this.place_tile(suggest.tile_type, suggest.coord);
+
+        // TODO(ayham-1): if marketplace put in groups, handle it there
+        if (suggest.tile_type == TileType.Marketplace)
+          this.marketplaces.put(suggest.coord, false);
+      } else {
+        System.out.println("Incorrect configuration of suggestion picking");
+      }
+
+    } catch (Exception e) {
+      System.out.println("Exception: " + e.toString());
+    }
+  };
 
   void place_marketplace() {
     boolean prefers_food = this.market_prefers_food();
@@ -669,8 +798,8 @@ public class MyBot extends ChallengeBot {
     }
 
     if (best_cplacable != null) {
-      if (this.place_tile(TileType.Marketplace, best_cplacable))
-        this.marketplaces.put(best_cplacable, false);
+      this.suggests_money.add(new PlacementSuggestion(TileType.Marketplace,
+                                                      best_cplacable, 0, null));
     }
   }
 
@@ -685,7 +814,9 @@ public class MyBot extends ChallengeBot {
         best_cplacable = cplacable;
       }
     }
-    this.place_tile(TileType.Grass, best_cplacable);
+    this.suggests_grass.add(
+        new PlacementSuggestion(TileType.Grass, best_cplacable, 0.0f, null));
+    // this.place_tile(TileType.Grass, best_cplacable);
   }
 
   void place_stonehill() {
@@ -699,9 +830,10 @@ public class MyBot extends ChallengeBot {
         best_cplacable = cplacable;
       }
     }
-    if (best_cplacable != null) {
-      this.place_tile(TileType.StoneHill, best_cplacable);
-    }
+
+    this.suggests_materials.add(new PlacementSuggestion(
+        TileType.StoneHill, best_cplacable, 0.0f, null));
+    // this.place_tile(TileType.StoneHill, best_cplacable);
   }
 
   void place_stonemountain() {
@@ -715,9 +847,10 @@ public class MyBot extends ChallengeBot {
         best_cplacable = cplacable;
       }
     }
-    if (best_cplacable != null) {
-      this.place_tile(TileType.StoneMountain, best_cplacable);
-    }
+
+    // this.place_tile(TileType.StoneMountain, best_cplacable);
+    this.suggests_materials.add(new PlacementSuggestion(
+        TileType.StoneMountain, best_cplacable, 0.0f, null));
   }
 
   void place_stonerocks() {
@@ -731,9 +864,10 @@ public class MyBot extends ChallengeBot {
         best_cplacable = cplacable;
       }
     }
-    if (best_cplacable != null) {
-      this.place_tile(TileType.StoneRocks, best_cplacable);
-    }
+
+    // this.place_tile(TileType.StoneRocks, best_cplacable);
+    this.suggests_materials.add(new PlacementSuggestion(
+        TileType.StoneRocks, best_cplacable, 0.0f, null));
   }
 
   void place_wheat() {
@@ -752,7 +886,10 @@ public class MyBot extends ChallengeBot {
     }
 
     if (max_group != null) {
-      max_group.add_tile(TileType.Wheat);
+      // max_group.add_tile(TileType.Wheat);
+
+      this.suggests_food.add(
+          new PlacementSuggestion(TileType.Wheat, null, 0.0f, max_group));
       return;
     }
 
@@ -796,8 +933,10 @@ public class MyBot extends ChallengeBot {
     }
     if (best_cplacable != null) {
       try {
-        WheatGroup new_group = new WheatGroup(this, best_cplacable);
-        this.groups.add(new_group);
+        // WheatGroup new_group = new WheatGroup(this, best_cplacable);
+        this.suggests_food.add(
+            new PlacementSuggestion(TileType.Wheat, best_cplacable, 0.0f,
+                                    new WheatGroup(this, best_cplacable)));
       } catch (Exception e) {
       }
     }
@@ -821,7 +960,9 @@ public class MyBot extends ChallengeBot {
 
     if (max_group != null) {
       try {
-        max_group.add_tile(TileType.Forest);
+        // max_group.add_tile(TileType.Forest);
+        this.suggests_materials.add(
+            new PlacementSuggestion(TileType.Forest, null, 0.0f, max_group));
       } catch (Exception e) {
       }
       return;
@@ -839,8 +980,11 @@ public class MyBot extends ChallengeBot {
     }
     if (best_cplacable != null) {
       try {
-        ForestGroup new_group = new ForestGroup(this, best_cplacable);
-        this.groups.add(new_group);
+        // ForestGroup new_group = new ForestGroup(this, best_cplacable);
+        this.suggests_materials.add(
+            new PlacementSuggestion(TileType.Forest, best_cplacable, 0.0f,
+                                    new ForestGroup(this, best_cplacable)));
+
       } catch (Exception e) {
       }
     }
@@ -862,7 +1006,9 @@ public class MyBot extends ChallengeBot {
     }
 
     if (max_group != null) {
-      max_group.add_tile(TileType.DoubleHouse);
+      // max_group.add_tile(TileType.DoubleHouse);
+      this.suggests_money.add(
+          new PlacementSuggestion(TileType.DoubleHouse, null, 0.0f, max_group));
       return;
     }
 
@@ -894,9 +1040,12 @@ public class MyBot extends ChallengeBot {
 
     if (best_cplacable != null) {
       try {
-        HousingGroup hgroup =
-            new HousingGroup(this, TileType.DoubleHouse, best_cplacable);
-        this.groups.add(hgroup);
+        // HousingGroup hgroup =
+        //     new HousingGroup(this, TileType.DoubleHouse, best_cplacable);
+        // this.groups.add(hgroup);
+        this.suggests_materials.add(new PlacementSuggestion(
+            TileType.DoubleHouse, best_cplacable, 0.0f,
+            new HousingGroup(this, TileType.DoubleHouse, best_cplacable)));
       } catch (Exception e) {
       }
     }
@@ -918,7 +1067,9 @@ public class MyBot extends ChallengeBot {
     }
 
     if (max_group != null) {
-      max_group.add_tile(TileType.SmallHouse);
+      // max_group.add_tile(TileType.SmallHouse);
+      this.suggests_materials.add(
+          new PlacementSuggestion(TileType.SmallHouse, null, 0.0f, max_group));
       return;
     }
 
@@ -955,9 +1106,13 @@ public class MyBot extends ChallengeBot {
 
     if (best_cplacable != null) {
       try {
-        HousingGroup hgroup =
-            new HousingGroup(this, TileType.SmallHouse, best_cplacable);
-        this.groups.add(hgroup);
+        // HousingGroup hgroup =
+        //     ;
+        // this.groups.add(hgroup);
+
+        this.suggests_materials.add(new PlacementSuggestion(
+            TileType.SmallHouse, best_cplacable, 0.0f,
+            new HousingGroup(this, TileType.SmallHouse, best_cplacable)));
       } catch (Exception e) {
       }
     }
@@ -1016,8 +1171,12 @@ public class MyBot extends ChallengeBot {
       }
     }
 
-    if (best_cplacable != null)
-      this.place_tile(TileType.Windmill, best_cplacable);
+    if (best_cplacable != null) {
+      // this.place_tile(TileType.Windmill, best_cplacable);
+
+      this.suggests_food.add(new PlacementSuggestion(
+          TileType.Windmill, best_cplacable, 0.0f, null));
+    }
   }
 
   void place_beehive() {
@@ -1048,8 +1207,12 @@ public class MyBot extends ChallengeBot {
       }
     }
 
-    if (best_cplacable != null)
-      this.place_tile(TileType.Beehive, best_cplacable);
+    if (best_cplacable != null) {
+      // this.place_tile(TileType.Beehive, best_cplacable);
+
+      this.suggests_food.add(new PlacementSuggestion(
+          TileType.Beehive, best_cplacable, 0.0f, null));
+    }
   }
 
   void place_stonequarry() {
@@ -1104,8 +1267,12 @@ public class MyBot extends ChallengeBot {
       }
     }
 
-    if (best_cplacable != null)
-      this.place_tile(TileType.StoneQuarry, best_cplacable);
+    if (best_cplacable != null) {
+      // this.place_tile(TileType.StoneQuarry, best_cplacable);
+
+      this.suggests_materials.add(new PlacementSuggestion(
+          TileType.StoneQuarry, best_cplacable, 0.0f, null));
+    }
   }
 
   void place_moai() {
@@ -1166,8 +1333,11 @@ public class MyBot extends ChallengeBot {
       }
     }
 
-    if (best_cplacable != null)
-      this.place_tile(TileType.Moai, best_cplacable);
+    if (best_cplacable != null) {
+      // this.place_tile(TileType.Moai, best_cplacable);
+      this.suggests_money.add(
+          new PlacementSuggestion(TileType.Moai, best_cplacable, 0.0f, null));
+    }
   }
 
   boolean place_tile(TileType type, CubeCoordinate coord) {
@@ -1219,12 +1389,15 @@ public class MyBot extends ChallengeBot {
   }
 
   void update_coords_placable() {
-    for (var c : world.getBuildArea()) {
+    for (var c : this.world.getBuildArea()) {
       if (world.getMap().at(c) != null)
         continue;
       if (world.getMap().getNeighbors(c).hasNext() == true)
         this.coords_placable.add(c);
     }
+
+    for (var group : this.groups)
+      group.update_coords_placable();
   }
 
   boolean market_prefers_food() {
@@ -1250,6 +1423,8 @@ public class MyBot extends ChallengeBot {
         //     (this.resource_growth.materials - this.resource_growth.money) /
         //         this.resource_growth.money,
         //     1);
+
+        // TODO(ayham-1): find a formula that reaches 1
         double perc_food =
             (this.resource_growth.money < this.resource_growth.food)
                 ? Math.min(Math.pow(Math.E, -(this.resource_growth.money /

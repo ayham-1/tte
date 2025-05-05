@@ -1,0 +1,82 @@
+#!/bin/python3
+
+import subprocess
+import json
+import os
+import sys
+
+# Number of times to repeat
+x = int(sys.argv[1])
+
+# Path to the JSON file
+json_file = "report.json"
+
+# Accumulator list
+rounds = []
+foods = []
+materials = []
+moneys = []
+
+def add_values():
+    with open(json_file, "r") as f:
+        contents = f.read()
+
+        data = json.loads(contents)
+        round_value = data.get("round")
+        money_value = data.get("metrics").get("money")
+        food_value = data.get("metrics").get("food")
+        materials_value = data.get("metrics").get("materials")
+
+        rounds.append(round_value)
+        moneys.append(money_value)
+        foods.append(food_value)
+        materials.append(materials_value)
+
+def print_all():
+    average_round = sum(rounds) / len(rounds)
+    average_food = sum(foods) / len(rounds)
+    average_materials = sum(materials) / len(rounds)
+    average_moneys = sum(moneys) / len(rounds)
+    print(f"Average round value over {len(rounds)} runs: {average_round:.2f}")
+    print(f"Average food value over {len(rounds)} runs: {average_food:.2f}")
+    print(f"Average materials value over {len(rounds)} runs: {average_materials:.2f}")
+    print(f"Average moneys value over {len(rounds)} runs: {average_moneys:.2f}")
+
+
+# Main loop
+for i in range(1, x + 1):
+    print(f"Run {i}:")
+
+    try:
+        subprocess.run(["./run-cli.sh"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: {e}")
+        continue
+
+    add_values()
+    
+    print()
+
+print_all()
+
+# Known seeds
+print("Calculating known seeds");
+
+print("Running seed AuD");
+try:
+    subprocess.run(["./run-cli.sh", "--seed", "AuD"], check=True)
+except subprocess.CalledProcessError as e:
+    print(f"Error running command: {e}")
+
+
+add_values()
+
+print("Running seed TTE");
+try:
+    subprocess.run(["./run-cli.sh", "--seed", "TTE"], check=True)
+except subprocess.CalledProcessError as e:
+    print(f"Error running command: {e}")
+
+add_values()
+
+print_all()
