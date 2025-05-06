@@ -43,7 +43,6 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - after placing, the getMap() does not update
  *
  * Current:
- *  -
  *
  * TODOs:
  *  - make groups that have single concrete tile and other 'virtual' ones
@@ -1451,34 +1450,21 @@ public class MyBot extends ChallengeBot {
       group.update_coords_placable();
   }
 
-  boolean market_prefers_food() {
-    double perc_food = Math.min(Math.pow(Math.E, -(this.resource_growth.money /
-                                                   this.resource_growth.food)),
-                                1);
-    double perc_mat =
-        Math.min(Math.pow(Math.E, -(this.resource_growth.money /
-                                    this.resource_growth.materials)),
-                 1);
-    return perc_food >= perc_mat;
-  }
-
   double market_get_food_rate() {
-    double perc_food =
-        (this.resource_growth.money < this.resource_growth.food)
-            ? Math.min(Math.pow(Math.E, -(this.resource_growth.money /
-                                          this.resource_growth.food)),
-                       1)
-            : 0;
+    double perc_food = 0.0f;
+    if (this.resource_growth.money >= this.resource_growth.food)
+      return perc_food;
+    perc_food = Math.pow(Math.E, -2 * ((this.resource_growth.money /
+                                        this.resource_growth.food)));
     return Math.clamp(perc_food, 0.0f, 1.0f);
   }
 
   double market_get_materials_rate() {
-    double perc_mat =
-        (this.resource_growth.money < this.resource_growth.materials)
-            ? Math.min(Math.pow(Math.E, -(this.resource_growth.money /
-                                          this.resource_growth.materials)),
-                       1)
-            : 0;
+    double perc_mat = 0.0f;
+    if (this.resource_growth.money >= this.resource_growth.materials)
+      return perc_mat;
+    perc_mat = Math.pow(Math.E, -2 * ((this.resource_growth.money /
+                                       this.resource_growth.materials)));
     return Math.clamp(perc_mat, 0.0f, 1.0f);
   }
 
