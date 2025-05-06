@@ -40,15 +40,21 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - more tiles placed earlier == better
  *  - marketplaces convert food/material to money, and are actually very
  * important mid-game
+ *  - after placing, the getMap() does not update
  *
  * Current:
- *  - make score calculations reflect actual production by using math from docs
- *  - fix what the fuck is happening with forests not being placed randomly
+ *  -
  *
  * TODOs:
- *  - describe run director
+ *  - make groups that have single concrete tile and other 'virtual' ones
+ *    - windmill
+ *    - beehives
+ *    - marketplaces
  *  - investigate sectors
+ *    - what functions should sectors offer:
  *    - find a way to optimize multiple group placements
+ *    - wheat/forest should also take in mind changes of score of other stuff
+ * like beehives, windmills and marketplaces
  *
  *  - quarries should place themselves when no available stones with empty
  * possibility
@@ -169,9 +175,6 @@ public class MyBot extends ChallengeBot {
       int low_avoid = Integer.MAX_VALUE;
       int best_packing = 0;
 
-      // EH WTF
-      // this.update_coords_placable();
-
       for (var cplacable : this.coords_placable) {
         boolean has_foreign = false;
         int packing = 0;
@@ -282,9 +285,6 @@ public class MyBot extends ChallengeBot {
       CubeCoordinate best_cplacable = null;
       int best_packing = 0;
       int low_avoid = Integer.MAX_VALUE;
-
-      // EH WTF
-      // this.update_coords_placable();
 
       for (var cplacable : this.coords_placable) {
         if (best_cplacable == null)
@@ -663,9 +663,8 @@ public class MyBot extends ChallengeBot {
 
           double early_bias =
               1 -
-              (Math.pow(
-                  Math.E,
-                  -((this.round + (this.world.getRoundTime() / 60.0f)) * 2)));
+              (Math.pow(Math.E,
+                        -((this.round + (this.world.getRoundTime() / 60.0f)))));
 
           if ((money - cost.money) + offset_m >
                   this.resource_target.money * early_bias &&
@@ -816,44 +815,41 @@ public class MyBot extends ChallengeBot {
   };
 
   void place_marketplace() {
-    boolean prefers_food = this.market_prefers_food();
+    double f_rate = this.market_get_food_rate();
+    double m_rate = this.market_get_materials_rate();
 
     CubeCoordinate best_cplacable = null;
     int low_avoid = Integer.MAX_VALUE;
-    int high_houses = 0;
-    int high_resources = 0;
+    double max_delta_score = 0.0f;
     for (var cplacable : this.coords_placable) {
       if (best_cplacable == null)
         best_cplacable = cplacable;
 
-      int houses = 0;
-      int resources = 0;
-      for (var cring : cplacable.getRing(3)) {
+      int h = 0;
+      int d = 0;
+      for (var cring : cplacable.getRing(1)) {
         var t = this.world.getMap().at(cring);
         if (t == null)
           continue;
-        if (t.getTileType() == TileType.SmallHouse ||
-            t.getTileType() == TileType.DoubleHouse)
-          houses++;
-        else if (t.getTileType() == TileType.Wheat ||
-                 t.getTileType() == TileType.Beehive)
-          resources += (prefers_food) ? 1 : 1; // materials is just op
-        else if (t.getTileType() == TileType.Forest ||
-                 t.getTileType() == TileType.StoneQuarry)
-          resources += (prefers_food) ? 2 : 1;
-      }
 
-      // no use of having no houses
-      if (houses == 0)
-        continue;
+        if (t.getTileType() == TileType.SmallHouse)
+          h++;
+        if (t.getTileType() == TileType.DoubleHouse)
+          d++;
+      }
+      double e = Math.min(1, (h + (d * 2) * 0.4f + 0.2f));
+
+      // TODO(ayham-1): make sector, and calculate from it
+      double f = 1.0f;
+      double m = 1.0f;
+
+      double dscore = (f * f_rate + m * m_rate) * e;
 
       int avoid = this.avoid_coord_for_other_group(TileType.Marketplace,
                                                    cplacable, null);
-      if (avoid <= low_avoid && houses >= high_houses &&
-          resources >= high_resources) {
+      if (avoid <= low_avoid && dscore >= max_delta_score) {
         low_avoid = avoid;
-        high_houses = houses;
-        high_resources = resources;
+        max_delta_score = dscore;
         best_cplacable = cplacable;
       }
     }
@@ -1203,9 +1199,6 @@ public class MyBot extends ChallengeBot {
         w += Math.min(1, 2.0f / m);
       }
 
-      // if (count_wheat == 0)
-      //   continue;
-
       int f = 0;
       for (var cneighbor : cplacable.getRing(1)) {
         var ct = world.getMap().at(cneighbor);
@@ -1469,38 +1462,34 @@ public class MyBot extends ChallengeBot {
     return perc_food >= perc_mat;
   }
 
+  double market_get_food_rate() {
+    double perc_food =
+        (this.resource_growth.money < this.resource_growth.food)
+            ? Math.min(Math.pow(Math.E, -(this.resource_growth.money /
+                                          this.resource_growth.food)),
+                       1)
+            : 0;
+    return Math.clamp(perc_food, 0.0f, 1.0f);
+  }
+
+  double market_get_materials_rate() {
+    double perc_mat =
+        (this.resource_growth.money < this.resource_growth.materials)
+            ? Math.min(Math.pow(Math.E, -(this.resource_growth.money /
+                                          this.resource_growth.materials)),
+                       1)
+            : 0;
+    return Math.clamp(perc_mat, 0.0f, 1.0f);
+  }
+
   void setup_marketplaces() {
     for (var market : this.marketplaces.entrySet()) {
       if (market.getValue() == false) {
-        // double perc_food =
-        //     Math.min((this.resource_growth.food - this.resource_growth.money)
-        //     /
-        //                  this.resource_growth.money,
-        //              1);
-        // double perc_mat = Math.min(
-        //     (this.resource_growth.materials - this.resource_growth.money) /
-        //         this.resource_growth.money,
-        //     1);
-
-        // double perc_food = 0.0f;
-        // double perc_mat = 0.0f;
-
         // TODO(ayham-1): find a formula that reaches 1
-        double perc_food =
-            (this.resource_growth.money < this.resource_growth.food)
-                ? Math.min(Math.pow(Math.E, -(this.resource_growth.money /
-                                              this.resource_growth.food)),
-                           1)
-                : 0;
-        double perc_mat =
-            (this.resource_growth.money < this.resource_growth.materials)
-                ? Math.min(Math.pow(Math.E, -(this.resource_growth.money /
-                                              this.resource_growth.materials)),
-                           1)
-                : 0;
-        this.controller.configureMarket(market.getKey(),
-                                        perc_food >= 0 ? perc_food : 0,
-                                        perc_mat >= 0 ? perc_mat : 0);
+        double perc_food = this.market_get_food_rate();
+        double perc_mat = this.market_get_materials_rate();
+
+        this.controller.configureMarket(market.getKey(), perc_food, perc_mat);
         this.marketplaces.put(market.getKey(), true);
         if (!this.controller.actionPossible())
           return;
