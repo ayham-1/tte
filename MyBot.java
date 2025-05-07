@@ -28,15 +28,9 @@
  *  - avoid() functionality with if ( && ) is not exactly most efficient
  *
  * Current:
- *  - calculate suggestions per card per hand, and not per hand
- *  - make groups that have single concrete tile and other 'virtual' ones
- *    - windmill
- *    - beehives
- *    - marketplaces
- *  - refactor groups so that they are ready for director rule:
- *    - make it so that every possible placement with its score is stored
- *    - groups don't make single placement suggestions per card
-
+ *  - calculates global score:
+ *    - the new global score, food, windmill + wheat + beehive
+ *    - the new money global score, small + double + market
  *  - director description:
  *    -  possible placement with its score is stored, and the director picks one
  *    - gets asked from groups whether their suggestions break rules
@@ -44,9 +38,7 @@
  *        - don't have wheats greater than 9 ever
  *        - don't close wheat group
  *        - don't make windmills share the same wheat
- *      - calculates global score:
- *        - the new global score, food, windmill + wheat + beehive
- *        - the new money global score, small + double + market
+
  *      - decides whether to create a new group or not for a specific group of
  * g  roups
  *        - if (windmill + wheat > add wheat)
@@ -216,11 +208,7 @@ public class MyBot extends ChallengeBot {
       }
     }
 
-    public void add_tile(TileType type, CubeCoordinate coord) throws Exception {
-      // TODO(ayham-1): Director places, and not here
-      if (!this.bot.place_tile(type, coord, this))
-        throw new Exception("place_tile() failed");
-
+    public void add_tile(TileType type, CubeCoordinate coord) {
       this.tiles.put(coord, type);
 
       if (this.coords_placable.contains(coord))
@@ -312,69 +300,6 @@ public class MyBot extends ChallengeBot {
     @Override
     public boolean accepts(TileType type) {
       return type == TileType.Forest;
-    }
-  }
-
-  class DoubleHouseGroup extends Group {
-    /* Represents a double house, optimal means:
-     *  - exactly three house neighbors
-     **/
-
-    DoubleHouseGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
-      super(bot);
-    }
-
-    public double calc_score_of_dhouse(CubeCoordinate coord) {
-      double best_boost = this.bot.get_best_boost(coord);
-      int count = 0;
-      for (var cring : coord.getRing(1)) {
-        var tileinfo = this.bot.map.get(cring);
-        if (tileinfo == null)
-          continue;
-
-        if (tileinfo.type == TileType.DoubleHouse ||
-            tileinfo.type == TileType.SmallHouse)
-          count++;
-      }
-
-      return (((-Math.abs(count - 3) + 3) / (2.0f / 3.0f)) + 0.5f) * best_boost;
-    }
-
-    @Override
-    public double calc_score() {
-      return this.calc_score_of_dhouse(this.tiles.keySet().iterator().next());
-    }
-
-    @Override
-    public boolean accepts(TileType type) {
-      // this group is a single tile group (currently?)
-      return false;
-    }
-  }
-
-  class SmallHouseGroup extends Group {
-    /* Represents a double house, optimal means:
-     *  - exactly three house neighbors
-     **/
-
-    SmallHouseGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
-      super(bot);
-    }
-
-    public double calc_score_of_shouse(CubeCoordinate coord) {
-      double best_boost = this.bot.get_best_boost(coord);
-      return (2.0f * best_boost) + 2.0f;
-    }
-
-    @Override
-    public double calc_score() {
-      return this.calc_score_of_shouse(this.tiles.keySet().iterator().next());
-    }
-
-    @Override
-    public boolean accepts(TileType type) {
-      // this group is a single tile group (currently?)
-      return false;
     }
   }
 
@@ -519,6 +444,49 @@ public class MyBot extends ChallengeBot {
     }
   }
 
+  class DoubleHouseRepr extends TileRepr {
+    DoubleHouseRepr(MyBot bot, CubeCoordinate coord) throws Exception {
+      super(bot, coord, TileType.DoubleHouse);
+    }
+
+    public double calc_score_of_dhouse(CubeCoordinate coord) {
+      double best_boost = this.bot.get_best_boost(coord);
+      int count = 0;
+      for (var cring : coord.getRing(1)) {
+        var tileinfo = this.bot.map.get(cring);
+        if (tileinfo == null)
+          continue;
+
+        if (tileinfo.type == TileType.DoubleHouse ||
+            tileinfo.type == TileType.SmallHouse)
+          count++;
+      }
+
+      return (((-Math.abs(count - 3) + 3) / (2.0f / 3.0f)) + 0.5f) * best_boost;
+    }
+
+    @Override
+    public double calc_score() {
+      return this.calc_score_of_dhouse(this.coord);
+    }
+  }
+
+  class SmallHouseRepr extends TileRepr {
+    SmallHouseRepr(MyBot bot, CubeCoordinate coord) throws Exception {
+      super(bot, coord, TileType.SmallHouse);
+    }
+
+    public double calc_score_of_shouse(CubeCoordinate coord) {
+      double best_boost = this.bot.get_best_boost(coord);
+      return (2.0f * best_boost) + 2.0f;
+    }
+
+    @Override
+    public double calc_score() {
+      return this.calc_score_of_shouse(this.coord);
+    }
+  }
+
   class GrassRepr extends TileRepr {
     GrassRepr(MyBot bot, CubeCoordinate coord) {
       super(bot, coord, TileType.Grass);
@@ -583,28 +551,51 @@ public class MyBot extends ChallengeBot {
     }
   }
 
-  class Director {
+  class State {
+    // holds the various lists for the bot that are used to represent
+    // information about the game map in a non Map<>'y fashion
+  }
+
+  abstract class Director {
     MyBot bot;
 
     TileType chosen_tile;
     TreeSet<PlacementSuggestion> suggestions =
         new TreeSet<PlacementSuggestion>();
 
+    abstract TileType get_preferred_tile(Set<TileType> hand);
+    abstract PlacementSuggestion pick();
+
     Director(MyBot bot) { this.bot = bot; }
 
-    void new_tile() { this.suggestions.clear(); }
+    void new_card() { this.suggestions.clear(); }
 
-    TileType get_preferred_tile(Set<TileType> hand) { return TileType.Wheat; }
-
-    void suggest(PlacementSuggestion suggestion) {}
-
-    PlacementSuggestion pick() { return this.suggestions.last(); }
+    void suggest(PlacementSuggestion suggestion) {
+      this.suggestions.add(suggestion);
+    }
 
     // TODO(ayham-1): implement
     Score get_global_score() { return new Score(0.0f, 0.0f, 0.0f); };
   }
 
-  Director director = new Director(this);
+  class GreedyDictator extends Director {
+    /* Greedy dictator, just selects the placement with highest score delta,
+     * no consideration for the future, rules with no rules */
+
+    GreedyDictator(MyBot bot) { super(bot); }
+
+    @Override
+    TileType get_preferred_tile(Set<TileType> hand) {
+      return TileType.Wheat;
+    }
+
+    @Override
+    PlacementSuggestion pick() {
+      return this.suggestions.last();
+    }
+  }
+
+  Director director = new GreedyDictator(this);
 
   // API vars
   World world;
