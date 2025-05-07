@@ -16,22 +16,6 @@
  *  :D
  * */
 
-import java.util.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import page.codeberg.terratactician_expandoria.*;
-import page.codeberg.terratactician_expandoria.bots.*;
-import page.codeberg.terratactician_expandoria.world.CubeCoordinate;
-import page.codeberg.terratactician_expandoria.world.Metrics;
-import page.codeberg.terratactician_expandoria.world.tiles.*;
-import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
-
 /*
  * Observations:
  *  - only one placement of a tile is allowed per turn
@@ -44,13 +28,14 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *  - avoid() functionality with if ( && ) is not exactly most efficient
  *
  * Current:
- *  - refactor groups so that they are ready for director rule:
- *    - make it so that every possible placement with its score is stored
- *    - groups don't make single placement suggestions per card
+ *  - calculate suggestions per card per hand, and not per hand
  *  - make groups that have single concrete tile and other 'virtual' ones
  *    - windmill
  *    - beehives
  *    - marketplaces
+ *  - refactor groups so that they are ready for director rule:
+ *    - make it so that every possible placement with its score is stored
+ *    - groups don't make single placement suggestions per card
 
  *  - director description:
  *    -  possible placement with its score is stored, and the director picks one
@@ -90,8 +75,36 @@ import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
  *
  *  - avoid beehives closing forests too much
  *
+ * PROBLEMATIC SEEDS:
+ *  - 206291997783329192
+ *  - 11841930331551995945
+ *  - 15983273597267596929
+ *  - 3670905267582609409
+ *  - 3833241609646726404
+ *  - 13643824703136673852
+ *  - 4185536861074494110
+ *  - 9404526250308863753
+ *  - 7166311343533290299
+ *  - 10657404372395100657
+ *  - 1524678160230742459
  *
  * */
+
+import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import page.codeberg.terratactician_expandoria.*;
+import page.codeberg.terratactician_expandoria.bots.*;
+import page.codeberg.terratactician_expandoria.world.CubeCoordinate;
+import page.codeberg.terratactician_expandoria.world.Metrics;
+import page.codeberg.terratactician_expandoria.world.tiles.*;
+import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
 
 public class MyBot extends ChallengeBot {
   static final boolean PRINT_DEBUG = false;
@@ -108,7 +121,65 @@ public class MyBot extends ChallengeBot {
 
   @Override
   public String getName() {
-    return "Bob the Bot the Builder";
+    return "Bob the Bot the Benevolent Builder";
+  }
+
+  public enum ResourceType { Food, Materials, Money }
+
+  class PlacementSuggestion implements Comparable<PlacementSuggestion> {
+    Score growth_delta;
+    CubeCoordinate coord = null;
+    TileInfo info;
+
+    PlacementSuggestion(TileType typ, CubeCoordinate coord, Score g_delta,
+                        TileInfo info) {
+      this.coord = coord;
+      this.growth_delta = g_delta;
+      this.info = info;
+    }
+
+    @Override
+    public int compareTo(PlacementSuggestion other) {
+      return this.growth_delta.compareTo(other.growth_delta);
+    }
+  };
+
+  class TileInfo {
+    TileType type;
+    Group associated_group;
+    TileRepr associated_repr;
+
+    TileInfo(TileType t, Group grp) {
+      this.type = t;
+      this.associated_group = grp;
+    }
+
+    TileInfo(TileType t, TileRepr repr) {
+      this.type = t;
+      this.associated_repr = repr;
+    }
+  }
+
+  class Score implements Comparable<Score> {
+    double food;
+    double materials;
+    double money;
+    Score(double food, double materials, double money) {
+      this.food = food;
+      this.materials = materials;
+      this.money = money;
+    }
+
+    Score delta(Score other) {
+      return new Score(other.food - this.food, other.materials - this.materials,
+                       other.money - this.money);
+    }
+
+    @Override
+    public int compareTo(Score other) {
+      return Double.compare((this.food + this.materials + this.money),
+                            (other.food + other.materials + other.money));
+    }
   }
 
   abstract class Group {
@@ -116,20 +187,37 @@ public class MyBot extends ChallengeBot {
 
     HashMap<CubeCoordinate, TileType> tiles = new HashMap<>();
     Set<CubeCoordinate> coords_placable = new LinkedHashSet<>();
-    double last_score = 0.0f;
 
     Group(MyBot bot) { this.bot = bot; }
 
     ResourceType res_type;
 
     abstract double calc_score();
-    abstract double calc_new_score(TileType newtype, CubeCoordinate coord);
 
     abstract boolean accepts(TileType type);
-    abstract boolean fine_neighbor(TileType type);
-    abstract void add_tile(TileType type);
+
+    public Score calc_suggested_new_global_score(TileType newtype,
+                                                 CubeCoordinate coord) {
+      this.tiles.put(coord, newtype);
+      this.bot.map.put(coord, new TileInfo(newtype, this));
+      Score score = this.bot.director.get_global_score();
+      this.tiles.remove(coord);
+      this.bot.map.remove(coord);
+      return score;
+    }
+
+    public void suggest_all(TileType type) {
+      for (var cplacable : this.coords_placable) {
+        this.bot.director.suggest(new PlacementSuggestion(
+            type, cplacable,
+            this.calc_suggested_new_global_score(type, cplacable)
+                .delta(this.bot.director.get_global_score()),
+            new TileInfo(type, this)));
+      }
+    }
 
     public void add_tile(TileType type, CubeCoordinate coord) throws Exception {
+      // TODO(ayham-1): Director places, and not here
       if (!this.bot.place_tile(type, coord, this))
         throw new Exception("place_tile() failed");
 
@@ -159,14 +247,11 @@ public class MyBot extends ChallengeBot {
         }
       }
     }
-
-    public boolean addable() { return !this.coords_placable.isEmpty(); }
   }
 
   class WheatGroup extends Group {
     /* Represents a Wheat group, optimal means:
      * - have 9 connected Wheat Tiles
-     * - group members all close together (really?)
      **/
 
     WheatGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
@@ -174,98 +259,21 @@ public class MyBot extends ChallengeBot {
       super.res_type = ResourceType.Food;
     }
 
+    public double calc_score_of_wheats(CubeCoordinate coord) {
+      int w = this.bot.group_count(TileType.Wheat, coord);
+      double s = (w <= 9) ? 4.0f : -2.5f;
+      return w *
+          (Math.pow(Math.E, -Math.pow(((w - 9.0f) / s), 2.0f)) * 2.4f + 0.1f);
+    }
+
     @Override
     public double calc_score() {
-      int w = this.tiles.size();
-      double s = (w <= 9) ? 4.0f : -2.5f;
-      return w *
-          (Math.pow(Math.E, -Math.pow(((w - 9.0f) / s), 2.0f)) * 2.4f + 0.1f);
-    }
-
-    @Override
-    public double calc_new_score(TileType newtype, CubeCoordinate coord) {
-      int w = this.tiles.size() + 1;
-      double s = (w <= 9) ? 4.0f : -2.5f;
-      return w *
-          (Math.pow(Math.E, -Math.pow(((w - 9.0f) / s), 2.0f)) * 2.4f + 0.1f);
-    }
-
-    @Override
-    public void add_tile(TileType type) {
-      CubeCoordinate best_cplacable = null;
-      int low_avoid = Integer.MAX_VALUE;
-      int best_packing = 0;
-
-      for (var cplacable : this.coords_placable) {
-        boolean has_foreign = false;
-        int packing = 0;
-        for (var cring : cplacable.getRing(1)) {
-          var t = this.bot.world.getMap().at(cring);
-          if (this.tiles.containsKey(cring))
-            packing++;
-          else if (t != null && t.getTileType() == TileType.Wheat) {
-            has_foreign = true;
-            break;
-          }
-        }
-
-        // avoid joining with other groups
-        if (has_foreign)
-          continue;
-
-        // int avoid = this.bot.avoid_coord_for_other_group(TileType.Wheat,
-        //                                                  cplacable, null);
-        int avoid = 0;
-
-        if (packing >= best_packing && avoid <= low_avoid) {
-          best_packing = packing;
-          low_avoid = avoid;
-          best_cplacable = cplacable;
-        }
-      }
-      try {
-        this.add_tile(type, best_cplacable);
-      } catch (Exception e) {
-      }
-    }
-
-    @Override
-    public boolean addable() {
-      boolean o = super.addable();
-
-      // refuse making groups larger than 8
-      if (this.tiles.size() >= 9)
-        return false;
-
-      for (var cplacable : this.coords_placable) {
-        boolean could_be_placable = true;
-        for (var cring : cplacable.getRing(1)) {
-          var t = this.bot.world.getMap().at(cring);
-          if (t == null || this.tiles.containsKey(cring))
-            continue;
-
-          if (t.getTileType() == TileType.Wheat) {
-            could_be_placable = false;
-            break;
-          }
-        }
-
-        if (could_be_placable)
-          return o;
-      }
-
-      return false;
+      return this.calc_score_of_wheats(this.tiles.keySet().iterator().next());
     }
 
     @Override
     public boolean accepts(TileType type) {
       return type == TileType.Wheat;
-    }
-
-    @Override
-    public boolean fine_neighbor(TileType type) {
-      return type == TileType.Beehive || type == TileType.Windmill ||
-          type == TileType.Marketplace;
     }
   }
 
@@ -277,15 +285,18 @@ public class MyBot extends ChallengeBot {
 
     ForestGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
       super(bot);
+      super.res_type = ResourceType.Materials;
     }
 
-    @Override
-    public double calc_score() {
+    public double calc_score_of_forest(CubeCoordinate start) {
+      Set<CubeCoordinate> coords = new LinkedHashSet<CubeCoordinate>();
+      this.bot.group_count_set(TileType.Forest, start, coords);
       double score = 0;
-      for (var c : this.tiles.keySet()) {
+      for (var c : coords) {
         int count = 0;
         for (var cring : c.getRing(1)) {
-          if (this.tiles.containsKey(cring))
+          var tileinfo = this.bot.map.get(cring);
+          if (tileinfo != null && tileinfo.type == TileType.Forest)
             count++;
         }
         score += count * 0.5f + 0.25;
@@ -294,247 +305,119 @@ public class MyBot extends ChallengeBot {
     }
 
     @Override
-    public double calc_new_score(TileType newtype, CubeCoordinate coord) {
-      double score = this.calc_score();
-      int count = 0;
-      for (var cring : coord.getRing(1)) {
-        if (this.tiles.containsKey(cring))
-          count++;
-      }
-
-      score += count * 0.5f + 0.25;
-      return score;
-    }
-
-    @Override
-    public void add_tile(TileType type) {
-      CubeCoordinate best_cplacable = null;
-      int best_packing = 0;
-      int low_avoid = Integer.MAX_VALUE;
-
-      for (var cplacable : this.coords_placable) {
-        if (best_cplacable == null)
-          best_cplacable = cplacable;
-
-        int packing = 0;
-        for (var cring : cplacable.getRing(1)) {
-          if (this.tiles.containsKey(cring))
-            packing++;
-        }
-
-        int avoid = 0;
-        // int avoid = this.bot.avoid_coord_for_other_group(TileType.Forest,
-        //                                                  cplacable, this);
-
-        if (packing >= best_packing && avoid <= low_avoid) {
-          best_packing = packing;
-          low_avoid = avoid;
-          best_cplacable = cplacable;
-        }
-      }
-      try {
-        this.add_tile(type, best_cplacable);
-      } catch (Exception e) {
-      }
+    public double calc_score() {
+      return this.calc_score_of_forest(this.tiles.keySet().iterator().next());
     }
 
     @Override
     public boolean accepts(TileType type) {
       return type == TileType.Forest;
     }
-
-    @Override
-    public boolean fine_neighbor(TileType type) {
-      return type == TileType.Beehive || type == TileType.Marketplace;
-    }
   }
 
-  class HousingGroup extends Group {
-    /* Represents a housing group, optimal means:
-     * - double houses have exactly three neighbors
-     * - three small houses
+  class DoubleHouseGroup extends Group {
+    /* Represents a double house, optimal means:
+     *  - exactly three house neighbors
      **/
 
-    HousingGroup(MyBot bot, TileType type, CubeCoordinate new_coord)
-        throws Exception {
+    DoubleHouseGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
       super(bot);
+    }
+
+    public double calc_score_of_dhouse(CubeCoordinate coord) {
+      double best_boost = this.bot.get_best_boost(coord);
+      int count = 0;
+      for (var cring : coord.getRing(1)) {
+        var tileinfo = this.bot.map.get(cring);
+        if (tileinfo == null)
+          continue;
+
+        if (tileinfo.type == TileType.DoubleHouse ||
+            tileinfo.type == TileType.SmallHouse)
+          count++;
+      }
+
+      return (((-Math.abs(count - 3) + 3) / (2.0f / 3.0f)) + 0.5f) * best_boost;
     }
 
     @Override
     public double calc_score() {
-      double sscore = 0;
-      double dscore = 0;
-
-      for (var t : this.tiles.entrySet()) {
-        double boost = 0.0f;
-        // TODO(ayham-1): put this in grouping
-        for (var cring : t.getKey().getArea(3)) {
-          var crt = this.bot.world.getMap().at(cring);
-          if (crt == null)
-            continue;
-          double current_boost = 0.0f;
-          if (crt.getTileType() == TileType.Moai) {
-            Set<TileType> unique = new LinkedHashSet<>();
-            for (var cneighbor : cring.getArea(4)) {
-              var un = this.bot.world.getMap().at(cneighbor);
-              if (un != null)
-                unique.add(un.getTileType());
-            }
-            current_boost = 1 + 0.5f * Math.max(0, unique.size() - 2);
-            if (current_boost >= boost)
-              boost = current_boost;
-          }
-        }
-
-        if (t.getValue() == TileType.SmallHouse) {
-          sscore += 2.0f + (2.0f * boost);
-        } else if (t.getValue() == TileType.DoubleHouse) {
-
-          int count = 0;
-          for (var cring : t.getKey().getRing(1)) {
-            if (this.tiles.containsKey(cring))
-              count++;
-          }
-          dscore +=
-              (((-Math.abs(count - 3) + 3) / (2.0f / 3.0f)) + 0.5f) * boost;
-        }
-      }
-
-      return sscore + dscore;
-    }
-
-    @Override
-    public double calc_new_score(TileType newtype, CubeCoordinate coord) {
-      // add coord to tiles temp.
-      this.tiles.put(coord, newtype);
-
-      double score = this.calc_score();
-
-      this.tiles.remove(coord);
-
-      return score;
-    }
-
-    @Override
-    public void add_tile(TileType type) {
-      // TODO(ayham-1): place correctly according to score
-      if (type == TileType.SmallHouse) {
-        CubeCoordinate best_cplacable = null;
-        int best_packing = 0;
-        int low_avoid = Integer.MAX_VALUE;
-        for (var cplacable : this.coords_placable) {
-          if (best_cplacable == null)
-            best_cplacable = cplacable;
-
-          int packing = 0;
-          for (var cring : cplacable.getRing(1)) {
-            if (this.tiles.containsKey(cring))
-              packing++;
-          }
-
-          int avoid = 0;
-          // int avoid =
-          // this.bot.avoid_coord_for_other_group(TileType.SmallHouse,
-          //                                                  cplacable, this);
-
-          if (packing >= best_packing && avoid <= low_avoid) {
-            best_packing = packing;
-            low_avoid = avoid;
-            best_cplacable = cplacable;
-          }
-        }
-        try {
-          this.add_tile(TileType.SmallHouse, best_cplacable);
-        } catch (Exception e) {
-        }
-      } else if (type == TileType.DoubleHouse) {
-        CubeCoordinate best_cplacable = null;
-        int low_avoid = Integer.MAX_VALUE;
-        int best_count = 0;
-        for (var cplacable : this.coords_placable) {
-          if (best_cplacable == null)
-            best_cplacable = cplacable;
-
-          int count = 0;
-          boolean use = true;
-          for (var cring : cplacable.getRing(1)) {
-            var t = this.bot.world.getMap().at(cring);
-            if (this.tiles.containsKey(cring) &&
-                this.tiles.get(cring) == TileType.SmallHouse)
-              count++;
-            else if (t != null) {
-              if (t.getTileType() == TileType.SmallHouse ||
-                  t.getTileType() == TileType.DoubleHouse)
-                use = false;
-              break;
-            }
-          }
-          if (!use)
-            continue;
-
-          int avoid = 0;
-          // int avoid =
-          // this.bot.avoid_coord_for_other_group(TileType.DoubleHouse,
-          // cplacable, this);
-
-          if (avoid <= low_avoid && best_count <= 3 && count >= best_count) {
-            low_avoid = avoid;
-            best_count = count;
-            best_cplacable = cplacable;
-          }
-        }
-        try {
-          this.add_tile(TileType.DoubleHouse, best_cplacable);
-        } catch (Exception e) {
-        }
-      }
+      return this.calc_score_of_dhouse(this.tiles.keySet().iterator().next());
     }
 
     @Override
     public boolean accepts(TileType type) {
-      double sscore = 0;
-      double dscore = 0;
-      int dcount = 0;
-
-      for (var t : this.tiles.entrySet()) {
-        if (t.getValue() == TileType.SmallHouse)
-          sscore++;
-        else if (t.getValue() == TileType.DoubleHouse) {
-          int count = 0;
-          for (var cring : t.getKey().getRing(1)) {
-            if (this.tiles.containsKey(cring))
-              count++;
-          }
-          dscore += (count == 3) ? 1 : 0;
-          dcount++;
-        }
-      }
-      if (type == TileType.SmallHouse && sscore < 3)
-        return true;
-      if (type == TileType.DoubleHouse && dscore <= 1)
-        return true;
+      // this group is a single tile group (currently?)
       return false;
-    }
-
-    @Override
-    public boolean fine_neighbor(TileType type) {
-      return type == TileType.Moai || type == TileType.Marketplace;
     }
   }
 
-  class WindmillGroup extends Group {
-    /* Represents a windmill and the tiles that affect it
-     * the tiles that affect it aren't actually stored here... (yet?)
+  class SmallHouseGroup extends Group {
+    /* Represents a double house, optimal means:
+     *  - exactly three house neighbors
      **/
 
-    WindmillGroup(MyBot bot) throws Exception { super(bot); }
+    SmallHouseGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
+      super(bot);
+    }
+
+    public double calc_score_of_shouse(CubeCoordinate coord) {
+      double best_boost = this.bot.get_best_boost(coord);
+      return (2.0f * best_boost) + 2.0f;
+    }
 
     @Override
     public double calc_score() {
-      CubeCoordinate coord = this.tiles.keySet().iterator().next();
+      return this.calc_score_of_shouse(this.tiles.keySet().iterator().next());
+    }
 
+    @Override
+    public boolean accepts(TileType type) {
+      // this group is a single tile group (currently?)
+      return false;
+    }
+  }
+
+  abstract class TileRepr {
+    MyBot bot;
+    CubeCoordinate coord;
+    TileType type;
+
+    abstract double calc_score();
+
+    TileRepr(MyBot bot, CubeCoordinate coord, TileType type) {
+      this.bot = bot;
+      this.coord = coord;
+      this.type = type;
+    }
+
+    public Score calc_suggested_new_global_score(TileType newtype,
+                                                 CubeCoordinate coord) {
+      this.bot.map.put(coord, new TileInfo(newtype, this));
+      Score score = this.bot.director.get_global_score();
+      this.bot.map.remove(coord);
+      return score;
+    }
+
+    public void suggest_all() {
+      for (var cplacable : this.bot.coords_placable) {
+        this.bot.director.suggest(new PlacementSuggestion(
+            type, cplacable,
+            this.calc_suggested_new_global_score(this.type, cplacable)
+                .delta(this.bot.director.get_global_score()),
+            new TileInfo(this.type, this)));
+      }
+    }
+  }
+
+  class WindmillRepr extends TileRepr {
+    WindmillRepr(MyBot bot, CubeCoordinate coord) {
+      super(bot, coord, TileType.Wheat);
+    }
+
+    public double calc_score() {
       int w = 0;
-      for (var cneighbor : coord.getArea(3)) {
+      for (var cneighbor : this.coord.getArea(3)) {
         var ct = this.bot.map.get(cneighbor);
         if (ct == null || ct.type != TileType.Wheat)
           continue;
@@ -561,63 +444,167 @@ public class MyBot extends ChallengeBot {
 
       return score;
     }
+  }
 
-    @Override
-    public double calc_new_score(TileType newtype, CubeCoordinate coord) {
-      double score = 0;
-      return score;
+  class BeehiveRepr extends TileRepr {
+    BeehiveRepr(MyBot bot, CubeCoordinate coord) {
+      super(bot, coord, TileType.Beehive);
     }
 
-    @Override
-    public void add_tile(TileType type) {}
+    public double calc_score() {
+      int f = 0;
+      int w = 0;
+      for (var cneighbor : this.coord.getArea(2)) {
+        var ct = this.bot.map.get(cneighbor);
+        if (ct == null)
+          continue;
+        if (ct.type == TileType.Wheat)
+          w++;
+        if (ct.type == TileType.Forest)
+          f++;
+      }
 
-    @Override
-    public boolean accepts(TileType type) {
-      return false;
-    }
-
-    @Override
-    public boolean fine_neighbor(TileType type) {
-      return type == TileType.Wheat;
+      return Math.log((f + 1) * (w + 1)) * 0.6f;
     }
   }
 
-  static class Director {
-    static MyBot bot;
-    Director(MyBot bot) { Director.bot = bot; }
-  }
+  class MoaiRepr extends TileRepr {
+    CubeCoordinate coord;
 
-  public enum ResourceType { Food, Materials, Money }
-
-  class PlacementSuggestion implements Comparable<PlacementSuggestion> {
-    CubeCoordinate coord = null;
-    double delta_growth = 0.0f;
-    TileType tile_type;
-    Group group = null;
-
-    PlacementSuggestion(TileType typ, CubeCoordinate coord, double delta,
-                        Group group) {
-      this.tile_type = typ;
-      this.coord = coord;
-      this.delta_growth = delta;
-      this.group = group;
+    MoaiRepr(MyBot bot, CubeCoordinate coord) {
+      super(bot, coord, TileType.Moai);
     }
 
     @Override
-    public int compareTo(PlacementSuggestion other) {
-      return Double.compare(this.delta_growth, other.delta_growth);
-    }
-  };
-
-  class TileInfo {
-    TileType type;
-    Group associated_group;
-
-    TileInfo(TileType t, Group grp) {
-      this.type = t;
-      this.associated_group = grp;
+    public double calc_score() {
+      Set<TileType> unique = new LinkedHashSet<>();
+      for (var cneighbor : this.coord.getArea(4)) {
+        var un = this.bot.map.get(cneighbor);
+        if (un != null)
+          unique.add(un.type);
+      }
+      return 1 + 0.5f * Math.max(0, unique.size() - 2);
     }
   }
+
+  class MarketplaceRepr extends TileRepr {
+    MarketplaceRepr(MyBot bot, CubeCoordinate coord) {
+      super(bot, coord, TileType.Marketplace);
+    }
+
+    @Override
+    public double calc_score() {
+      double f_rate = this.bot.market_get_food_rate();
+      double m_rate = this.bot.market_get_materials_rate();
+
+      int h = 0;
+      int d = 0;
+      for (var cring : this.coord.getRing(1)) {
+        var t = this.bot.map.get(cring);
+        if (t == null)
+          continue;
+
+        if (t.type == TileType.SmallHouse)
+          h++;
+        if (t.type == TileType.DoubleHouse)
+          d++;
+      }
+      double e = Math.min(1, (h + (d * 2) * 0.4f + 0.2f));
+
+      // TODO(ayham-1): implement this
+      double f = 1.0f;
+      double m = 1.0f;
+
+      return (f * f_rate + m * m_rate) * e;
+    }
+  }
+
+  class GrassRepr extends TileRepr {
+    GrassRepr(MyBot bot, CubeCoordinate coord) {
+      super(bot, coord, TileType.Grass);
+    }
+
+    // lol by itself it does nothing, but added to the map, maybe
+    @Override
+    public double calc_score() {
+      return 0.0f;
+    }
+  }
+
+  class StoneRepr extends TileRepr {
+    StoneRepr(MyBot bot, CubeCoordinate coord, TileType stone) {
+      super(bot, coord, stone);
+    }
+
+    @Override
+    public double calc_score() {
+      return 0.0f; // lol by itself it does nothing, but added to the map, maybe
+    }
+  }
+
+  class QuarryRepr extends TileRepr {
+    QuarryRepr(MyBot bot, CubeCoordinate coord) {
+      super(bot, coord, TileType.StoneQuarry);
+    }
+
+    @Override
+    public double calc_score() {
+      int max_l = 0;
+      for (var cring : this.coord.getRing(1)) {
+        var t = this.bot.map.get(cring);
+        if (t == null)
+          continue;
+
+        if (t.type != TileType.StoneHill && t.type != TileType.StoneRocks &&
+            t.type != TileType.StoneMountain)
+          continue;
+
+        int count_using_quarries = 0;
+        for (var cquarry : cring.getRing(1)) {
+          var tquarry = this.bot.map.get(cquarry);
+          if (tquarry == null)
+            continue;
+          if (tquarry.type == TileType.StoneQuarry)
+            count_using_quarries++;
+        }
+
+        int l = 0;
+        if (t.type == TileType.StoneMountain && count_using_quarries <= 2)
+          l = 3;
+        else if (t.type == TileType.StoneHill && count_using_quarries <= 1)
+          l = 2;
+        else if (t.type == TileType.StoneRocks && count_using_quarries == 0)
+          l = 1;
+
+        if (max_l >= l)
+          max_l = l;
+      }
+      return 5 * max_l;
+    }
+  }
+
+  class Director {
+    MyBot bot;
+
+    TileType chosen_tile;
+    TreeSet<PlacementSuggestion> suggestions =
+        new TreeSet<PlacementSuggestion>();
+
+    Director(MyBot bot) { this.bot = bot; }
+
+    void new_tile() { this.suggestions.clear(); }
+
+    TileType get_preferred_tile(Set<TileType> hand) { return TileType.Wheat; }
+
+    void suggest(PlacementSuggestion suggestion) {}
+
+    PlacementSuggestion pick() { return this.suggestions.last(); }
+
+    // TODO(ayham-1): implement
+    Score get_global_score() { return new Score(0.0f, 0.0f, 0.0f); };
+  }
+
+  Director director = new Director(this);
 
   // API vars
   World world;
@@ -867,630 +854,55 @@ public class MyBot extends ChallengeBot {
       }
     }
 
-    if (!this.controller.actionPossible())
-      return;
+    // if (!this.controller.actionPossible())
+    //   return;
 
-    this.process_suggestions(suggestions_most);
-    suggestions_most.clear();
+    // this.process_suggestions(suggestions_most);
+    // suggestions_most.clear();
 
-    if (!this.controller.actionPossible())
-      return;
+    // if (!this.controller.actionPossible())
+    //   return;
 
-    this.process_suggestions(suggestions_mid);
-    suggestions_mid.clear();
+    // this.process_suggestions(suggestions_mid);
+    // suggestions_mid.clear();
 
-    if (!this.controller.actionPossible())
-      return;
+    // if (!this.controller.actionPossible())
+    //   return;
 
-    this.process_suggestions(suggestions_least);
-    suggestions_least.clear();
+    // this.process_suggestions(suggestions_least);
+    // suggestions_least.clear();
 
-    if (!this.controller.actionPossible())
-      return;
+    // if (!this.controller.actionPossible())
+    //   return;
 
-    this.process_suggestions(this.suggests_grass); // ugh 2
+    // this.process_suggestions(this.suggests_grass); // ugh 2
   }
 
-  void process_suggestions(Set<PlacementSuggestion> suggestions_group) {
-    if (!suggestions_group.iterator().hasNext())
-      return;
+  void place_marketplace() {}
 
-    List<PlacementSuggestion> list = new ArrayList<>(suggestions_group);
-    Collections.sort(list);
+  void place_grass() {}
 
-    PlacementSuggestion suggest = list.getLast();
-    try {
-      if (suggest.coord != null && suggest.group != null) {
-        // new group
-        suggest.group.add_tile(suggest.tile_type, suggest.coord);
-        this.groups.add(suggest.group);
-      } else if (suggest.coord == null && suggest.group != null) {
-        // use already existing group
-        suggest.group.add_tile(suggest.tile_type);
-      } else if (suggest.coord != null && suggest.group == null) {
-        // place without tile
-        this.place_tile(suggest.tile_type, suggest.coord, null);
+  void place_stonehill() {}
 
-        // TODO(ayham-1): if marketplace put in groups, handle it there
-        if (suggest.tile_type == TileType.Marketplace)
-          this.marketplaces.put(suggest.coord, false);
-      } else {
-        System.out.println("Incorrect configuration of suggestion picking");
-      }
+  void place_stonemountain() {}
 
-    } catch (Exception e) {
-      System.out.println("Exception: " + e.toString());
-    }
-  };
+  void place_stonerocks() {}
 
-  void place_marketplace() {
-    double f_rate = this.market_get_food_rate();
-    double m_rate = this.market_get_materials_rate();
+  void place_wheat() {}
 
-    CubeCoordinate best_cplacable = null;
-    int low_avoid = Integer.MAX_VALUE;
-    double max_delta_score = 0.0f;
-    for (var cplacable : this.coords_placable) {
-      if (best_cplacable == null)
-        best_cplacable = cplacable;
+  void place_forest() {}
 
-      int h = 0;
-      int d = 0;
-      for (var cring : cplacable.getRing(1)) {
-        var t = this.map.get(cring);
-        if (t == null)
-          continue;
+  void place_doublehouse() {}
 
-        if (t.type == TileType.SmallHouse)
-          h++;
-        if (t.type == TileType.DoubleHouse)
-          d++;
-      }
-      double e = Math.min(1, (h + (d * 2) * 0.4f + 0.2f));
+  void place_smallhouse() {}
 
-      // TODO(ayham-1): make sector, and calculate from it
-      double f = 1.0f;
-      double m = 1.0f;
+  void place_windmill() {}
 
-      double dscore = (f * f_rate + m * m_rate) * e;
+  void place_beehive() {}
 
-      int avoid = 0;
-      // int avoid = this.avoid_coord_for_other_group(TileType.Marketplace,
-      //                                              cplacable, null);
-      if (avoid <= low_avoid && dscore >= max_delta_score) {
-        low_avoid = avoid;
-        max_delta_score = dscore;
-        best_cplacable = cplacable;
-      }
-    }
+  void place_stonequarry() {}
 
-    if (best_cplacable != null) {
-      this.suggests_money.add(new PlacementSuggestion(TileType.Marketplace,
-                                                      best_cplacable, 0, null));
-    }
-  }
-
-  void place_grass() {
-    CubeCoordinate best_cplacable = null;
-    int low_avoid = Integer.MAX_VALUE;
-    for (var cplacable : this.coords_placable) {
-      int avoid = 0;
-      // int avoid =
-      //     this.avoid_coord_for_other_group(TileType.Grass, cplacable, null);
-      if (avoid <= low_avoid) {
-        low_avoid = avoid;
-        best_cplacable = cplacable;
-      }
-    }
-    this.suggests_grass.add(
-        new PlacementSuggestion(TileType.Grass, best_cplacable, 0.0f, null));
-  }
-
-  void place_stonehill() {
-    CubeCoordinate best_cplacable = null;
-    int low_avoid = Integer.MAX_VALUE;
-    for (var cplacable : this.coords_placable) {
-      int avoid = 0;
-      // int avoid =
-      //     this.avoid_coord_for_other_group(TileType.StoneHill, cplacable,
-      //     null);
-      if (avoid <= low_avoid) {
-        low_avoid = avoid;
-        best_cplacable = cplacable;
-      }
-    }
-
-    this.suggests_materials.add(new PlacementSuggestion(
-        TileType.StoneHill, best_cplacable, 0.0f, null));
-  }
-
-  void place_stonemountain() {
-    CubeCoordinate best_cplacable = null;
-    int low_avoid = Integer.MAX_VALUE;
-    for (var cplacable : this.coords_placable) {
-      int avoid = 0;
-      // int avoid = this.avoid_coord_for_other_group(TileType.StoneMountain,
-      //                                              cplacable, null);
-      if (avoid <= low_avoid) {
-        low_avoid = avoid;
-        best_cplacable = cplacable;
-      }
-    }
-
-    this.suggests_materials.add(new PlacementSuggestion(
-        TileType.StoneMountain, best_cplacable, 0.0f, null));
-  }
-
-  void place_stonerocks() {
-    CubeCoordinate best_cplacable = null;
-    int low_avoid = Integer.MAX_VALUE;
-    for (var cplacable : this.coords_placable) {
-      int avoid = 0;
-      // int avoid = this.avoid_coord_for_other_group(TileType.StoneRocks,
-      //                                              cplacable, null);
-      if (avoid <= low_avoid) {
-        low_avoid = avoid;
-        best_cplacable = cplacable;
-      }
-    }
-
-    this.suggests_materials.add(new PlacementSuggestion(
-        TileType.StoneRocks, best_cplacable, 0.0f, null));
-  }
-
-  void place_wheat() {
-    // search for a group that accepts wheat
-    double max_delta_score = 0.0f;
-    Group max_group = null;
-    for (var group : this.groups) {
-      if (group.accepts(TileType.Wheat) && group.addable()) {
-        double dscore =
-            group.calc_new_score(TileType.Wheat,
-                                 group.coords_placable.iterator().next()) -
-            group.calc_score();
-
-        if (dscore >= max_delta_score) {
-          max_delta_score = dscore;
-          max_group = group;
-        }
-      }
-    }
-
-    if (max_group != null) {
-      this.suggests_food.add(
-          new PlacementSuggestion(TileType.Wheat, null, 0.0f, max_group));
-      return;
-    }
-
-    // new wheat group
-    CubeCoordinate best_cplacable = null;
-    int low_avoid = Integer.MAX_VALUE;
-    int max_windmill = 0;
-    int max_beehive = 0;
-    for (var cplacable : this.coords_placable) {
-      boolean wheat_neighbors = false;
-
-      int windmill = 0;
-      int beehive = 0;
-      for (var cring : cplacable.getRing(1)) {
-        var t = world.getMap().at(cring);
-        if (t == null)
-          continue;
-        if (t.getTileType() == TileType.Windmill)
-          windmill++;
-        else if (t.getTileType() == TileType.Beehive)
-          beehive++;
-        else if (t.getTileType() == TileType.Wheat) {
-          wheat_neighbors = true;
-          break;
-        }
-      }
-
-      // refuse to start new wheat group beside wheats
-      if (wheat_neighbors)
-        continue;
-
-      int avoid = 0;
-      // int avoid =
-      //     this.avoid_coord_for_other_group(TileType.Wheat, cplacable, null);
-      if (avoid <= low_avoid && windmill >= max_windmill &&
-          beehive >= max_beehive) {
-        low_avoid = avoid;
-        max_windmill = windmill;
-        max_beehive = beehive;
-        best_cplacable = cplacable;
-      }
-    }
-    if (best_cplacable != null) {
-      try {
-        this.suggests_food.add(
-            new PlacementSuggestion(TileType.Wheat, best_cplacable, 0.0f,
-                                    new WheatGroup(this, best_cplacable)));
-      } catch (Exception e) {
-      }
-    }
-  }
-
-  void place_forest() {
-    // beside the forest
-    double max_delta_score = 0.0f;
-    Group max_group = null;
-    for (var group : this.groups) {
-      if (group.accepts(TileType.Forest) && group.addable()) {
-        double dscore =
-            group.calc_new_score(TileType.Forest,
-                                 group.coords_placable.iterator().next()) -
-            group.calc_score();
-
-        if (dscore >= max_delta_score) {
-          max_delta_score = dscore;
-          max_group = group;
-        }
-      }
-    }
-
-    if (max_group != null) {
-      try {
-        this.suggests_materials.add(new PlacementSuggestion(
-            TileType.Forest, null, max_delta_score, max_group));
-      } catch (Exception e) {
-      }
-      return;
-    }
-
-    int low_avoid = Integer.MAX_VALUE;
-    CubeCoordinate best_cplacable = null;
-    for (var cplacable : this.coords_placable) {
-      int avoid = 0;
-      // int avoid =
-      //     this.avoid_coord_for_other_group(TileType.Forest, cplacable, null);
-      if (avoid <= low_avoid) {
-        low_avoid = avoid;
-        best_cplacable = cplacable;
-      }
-    }
-    if (best_cplacable != null) {
-      try {
-        ForestGroup new_group = new ForestGroup(this, best_cplacable);
-        this.suggests_materials.add(new PlacementSuggestion(
-            TileType.Forest, best_cplacable,
-            new_group.calc_new_score(TileType.Forest, best_cplacable),
-            new_group));
-
-      } catch (Exception e) {
-      }
-    }
-  }
-
-  void place_doublehouse() {
-    double max_delta_score = 0.0f;
-    Group max_group = null;
-    for (var group : this.groups) {
-      if (group.accepts(TileType.DoubleHouse) && group.addable()) {
-        double dscore =
-            group.calc_new_score(TileType.DoubleHouse,
-                                 group.coords_placable.iterator().next()) -
-            group.calc_score();
-
-        if (dscore >= max_delta_score) {
-          max_delta_score = dscore;
-          max_group = group;
-        }
-      }
-    }
-
-    if (max_group != null) {
-      this.suggests_money.add(new PlacementSuggestion(
-          TileType.DoubleHouse, null, max_delta_score, max_group));
-      return;
-    }
-
-    CubeCoordinate best_cplacable = null;
-    int low_avoid = Integer.MAX_VALUE;
-    int high_markets = 0;
-    for (var cplacable : this.coords_placable) {
-      if (best_cplacable == null)
-        best_cplacable = cplacable;
-
-      int markets = 0;
-      for (var cring : cplacable.getArea(3)) {
-        var t = this.map.get(cring);
-        if (t == null)
-          continue;
-        if (t.type == TileType.Marketplace)
-          markets++;
-      }
-
-      int avoid = 0;
-      // int avoid = this.avoid_coord_for_other_group(TileType.DoubleHouse,
-      //                                              cplacable, null);
-
-      if (avoid <= low_avoid && markets >= high_markets) {
-        best_cplacable = cplacable;
-        low_avoid = avoid;
-        high_markets = markets;
-      }
-    }
-
-    if (best_cplacable != null) {
-      try {
-        HousingGroup hgroup =
-            new HousingGroup(this, TileType.DoubleHouse, best_cplacable);
-        this.suggests_materials.add(new PlacementSuggestion(
-            TileType.DoubleHouse, best_cplacable,
-            hgroup.calc_new_score(TileType.DoubleHouse, best_cplacable),
-            hgroup));
-      } catch (Exception e) {
-      }
-    }
-  }
-
-  void place_smallhouse() {
-    Group max_group = null;
-    double max_delta_score = 0.0f;
-    for (var group : this.groups) {
-      if (group.accepts(TileType.SmallHouse) && group.addable()) {
-        double dscore =
-            group.calc_new_score(TileType.SmallHouse,
-                                 group.coords_placable.iterator().next()) -
-            group.calc_score();
-
-        if (dscore >= max_delta_score) {
-          max_delta_score = dscore;
-          max_group = group;
-        }
-      }
-    }
-
-    if (max_group != null) {
-      this.suggests_materials.add(new PlacementSuggestion(
-          TileType.SmallHouse, null, max_delta_score, max_group));
-      return;
-    }
-
-    CubeCoordinate best_cplacable = null;
-    int low_avoid = Integer.MAX_VALUE;
-    int low_count = 0;
-    int high_markets = 0;
-    for (var cplacable : this.coords_placable) {
-      if (best_cplacable == null)
-        best_cplacable = cplacable;
-
-      int count = 0;
-      int markets = 0;
-      for (var cring : cplacable.getRing(1)) {
-        var t = this.map.get(cring);
-        if (t == null)
-          continue;
-        if (t.type == TileType.SmallHouse)
-          count++;
-        if (t.type == TileType.Marketplace)
-          markets++;
-      }
-
-      int avoid = 0;
-      // int avoid = this.avoid_coord_for_other_group(TileType.SmallHouse,
-      //                                              cplacable, null);
-
-      if (avoid <= low_avoid && low_count >= count && markets >= high_markets) {
-        best_cplacable = cplacable;
-        low_avoid = avoid;
-        low_count = count;
-        high_markets = markets;
-      }
-    }
-
-    if (best_cplacable != null) {
-      try {
-        HousingGroup hgroup =
-            new HousingGroup(this, TileType.SmallHouse, best_cplacable);
-        this.suggests_materials.add(new PlacementSuggestion(
-            TileType.SmallHouse, best_cplacable,
-            hgroup.calc_new_score(TileType.SmallHouse, best_cplacable),
-            hgroup));
-      } catch (Exception e) {
-      }
-    }
-  }
-
-  void place_windmill() {
-    // see docs
-    int low_avoid = Integer.MAX_VALUE;
-    double best_score = 0.0f;
-    CubeCoordinate best_cplacable = null;
-
-    for (var cplacable : this.coords_placable) {
-      int w = 0;
-      for (var cneighbor : cplacable.getArea(3)) {
-        var ct = world.getMap().at(cneighbor);
-        if (ct == null || ct.getTileType() != TileType.Wheat)
-          continue;
-
-        int m = 0;
-        for (var wheat_neighbor : cneighbor.getArea(3)) {
-          var wct = world.getMap().at(wheat_neighbor);
-          if (wct == null || wct.getTileType() != TileType.Windmill)
-            continue;
-          m++;
-        }
-        w += Math.min(1, 2.0f / m);
-      }
-
-      int f = 0;
-      for (var cneighbor : cplacable.getRing(1)) {
-        var ct = world.getMap().at(cneighbor);
-        if (ct == null || ct.getTileType() != TileType.Forest)
-          continue;
-        f++;
-      }
-
-      double score = 2 * w * (1 - (f * 0.5f));
-
-      if (score >= best_score) {
-        best_score = score;
-        best_cplacable = cplacable;
-      }
-    }
-
-    if (best_cplacable != null) {
-      this.suggests_food.add(new PlacementSuggestion(
-          TileType.Windmill, best_cplacable, best_score, null));
-    }
-  }
-
-  void place_beehive() {
-    // max wheet or forest in 2 radius
-    CubeCoordinate best_cplacable = null;
-    double best_score = 0.0f;
-    int low_avoid = Integer.MAX_VALUE;
-    for (var cplacable : this.coords_placable) {
-      if (best_cplacable == null)
-        best_cplacable = cplacable;
-
-      int f = 0;
-      int w = 0;
-      for (var cneighbor : cplacable.getArea(2)) {
-        var ct = world.getMap().at(cneighbor);
-        if (ct == null)
-          continue;
-        if (ct.getTileType() == TileType.Wheat)
-          w++;
-        if (ct.getTileType() == TileType.Forest)
-          f++;
-      }
-
-      int avoid = 0;
-      // int avoid =
-      //     this.avoid_coord_for_other_group(TileType.Beehive, cplacable,
-      //     null);
-      double score = Math.log((f + 1) * (w + 1)) * 0.6f;
-
-      if (score >= best_score && avoid <= low_avoid) {
-        low_avoid = avoid;
-        best_score = score;
-        best_cplacable = cplacable;
-      }
-    }
-
-    if (best_cplacable != null) {
-      this.suggests_food.add(new PlacementSuggestion(
-          TileType.Beehive, best_cplacable, best_score, null));
-    }
-  }
-
-  void place_stonequarry() {
-    CubeCoordinate best_cplacable = null;
-    int low_avoid = Integer.MAX_VALUE;
-    double max_score = 0.0f;
-    for (var cplacable : this.coords_placable) {
-      if (best_cplacable == null)
-        best_cplacable = cplacable;
-
-      int avoid = 0;
-      // int avoid = this.avoid_coord_for_other_group(TileType.StoneQuarry,
-      //                                              cplacable, null);
-
-      int l = 0;
-      for (var cring : cplacable.getRing(1)) {
-        var t = this.map.get(cring);
-        if (t == null)
-          continue;
-
-        if (t.type != TileType.StoneHill && t.type != TileType.StoneRocks &&
-            t.type != TileType.StoneMountain)
-          continue;
-
-        int count_using_quarries = 0;
-        for (var cquarry : cring.getRing(1)) {
-          var tquarry = this.map.get(cquarry);
-          if (tquarry == null)
-            continue;
-          if (tquarry.type == TileType.StoneQuarry)
-            count_using_quarries++;
-        }
-
-        if (t.type == TileType.StoneMountain && count_using_quarries <= 2)
-          l = 3;
-        else if (t.type == TileType.StoneHill && count_using_quarries <= 1)
-          l = 2;
-        else if (t.type == TileType.StoneRocks && count_using_quarries == 0)
-          l = 1;
-      }
-      double score = 5 * l;
-
-      if (score >= max_score && avoid <= low_avoid) {
-        max_score = score;
-        low_avoid = avoid;
-        best_cplacable = cplacable;
-      }
-    }
-
-    if (best_cplacable != null) {
-      this.suggests_materials.add(new PlacementSuggestion(
-          TileType.StoneQuarry, best_cplacable, max_score, null));
-    }
-  }
-
-  void place_moai() {
-    // see docs
-    double max_score = 0.0f;
-    int high_houses = 0;
-    int low_avoid = Integer.MAX_VALUE;
-    CubeCoordinate best_cplacable = null;
-
-    for (var cplacable : this.coords_placable) {
-      if (best_cplacable == null)
-        best_cplacable = cplacable;
-
-      int count_maoi_per_house = 0;
-      for (var cring : cplacable.getRing(6)) {
-        var t = this.map.get(cring);
-        if (t == null)
-          continue;
-        if (t == null || t.type != TileType.Moai)
-          continue;
-
-        count_maoi_per_house++;
-      }
-
-      Set<TileType> unique = new HashSet<>();
-      for (var cneighbor : cplacable.getArea(4)) {
-        var ct = world.getMap().at(cneighbor);
-        if (ct == null)
-          continue;
-        unique.add(ct.getTileType());
-      }
-
-      int count = 0;
-      for (var cring : cplacable.getRing(3)) {
-        var t = this.map.get(cring);
-        if (t == null)
-          continue;
-        if (t.type != TileType.SmallHouse || t.type != TileType.DoubleHouse)
-          continue;
-
-        count++;
-      }
-
-      int avoid = 0;
-      // int avoid =
-      //     this.avoid_coord_for_other_group(TileType.Moai, cplacable, null);
-
-      double score = 1 + 0.5f * Math.max(0, unique.size() - 2);
-
-      if (score >= max_score && avoid <= low_avoid) {
-        low_avoid = avoid;
-        max_score = score;
-
-        best_cplacable = cplacable;
-      }
-    }
-
-    if (best_cplacable != null) {
-      this.suggests_money.add(new PlacementSuggestion(
-          TileType.Moai, best_cplacable, max_score, null));
-    }
-  }
+  void place_moai() {}
 
   boolean place_tile(TileType type, CubeCoordinate coord, Group grp) {
     System.out.println("want " + type + " on " + coord);
@@ -1528,6 +940,32 @@ public class MyBot extends ChallengeBot {
 
     // this.coords_placable.removeIf(t -> !world.getBuildArea().contains(t));
     return true;
+  }
+
+  // TODO(ayham-1): track moai tiles separately for quick access
+  double get_best_boost(CubeCoordinate coord) {
+    // TODO(ayham-1): put this in grouping
+    double boost = 0.0f;
+    for (var cring : coord.getArea(3)) {
+      var crt = this.map.get(cring);
+      if (crt == null)
+        continue;
+
+      double current_boost = 0.0f;
+      if (crt.type == TileType.Moai) {
+        Set<TileType> unique = new LinkedHashSet<>();
+        for (var cneighbor : cring.getArea(4)) {
+          var un = this.map.get(cneighbor);
+          if (un != null)
+            unique.add(un.type);
+        }
+        current_boost = 1 + 0.5f * Math.max(0, unique.size() - 2);
+        if (current_boost >= boost)
+          boost = current_boost;
+      }
+    }
+
+    return boost;
   }
 
   void update_coords_placable() {
@@ -1575,29 +1013,32 @@ public class MyBot extends ChallengeBot {
   }
 
   void group_count_set(TileType type, CubeCoordinate start,
-                       Set<CubeCoordinate> coords, World world) {
+                       Set<CubeCoordinate> coords) {
 
-    if (world.getMap().at(start).getTileType() == type) {
-      coords.add(world.getMap().at(start).getCoordinate());
+    if (this.map.get(start) == null)
+      return;
+
+    if (this.map.get(start).type == type) {
+      coords.add(start);
     }
 
-    for (var cneighbor : world.getMap().at(start).getCoordinate().getRing(1)) {
-      var tneighbor = world.getMap().at(cneighbor);
+    for (var cneighbor : start.getRing(1)) {
+      var tneighbor = this.map.get(cneighbor);
       if (tneighbor == null)
         continue;
 
-      if (tneighbor.getTileType() == type) {
-        if (!coords.contains(tneighbor.getCoordinate())) {
-          coords.add(tneighbor.getCoordinate());
-          group_count_set(type, cneighbor, coords, world);
+      if (tneighbor.type == type) {
+        if (!coords.contains(cneighbor)) {
+          coords.add(cneighbor);
+          group_count_set(type, cneighbor, coords);
         }
       }
     }
   }
 
-  int group_count(TileType type, CubeCoordinate start, World world) {
+  int group_count(TileType type, CubeCoordinate start) {
     Set<CubeCoordinate> coord = new LinkedHashSet<CubeCoordinate>();
-    group_count_set(type, start, coord, world);
+    group_count_set(type, start, coord);
 
     return coord.size();
   }
