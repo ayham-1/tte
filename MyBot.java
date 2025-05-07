@@ -29,8 +29,7 @@
  *
  * Current:
  *  - calculates global score:
- *    - the new global score, food, windmill + wheat + beehive
- *    - the new money global score, small + double + market
+ *    - global score is just summation of all individual tiles production
  *  - director description:
  *    -  possible placement with its score is stored, and the director picks one
  *    - gets asked from groups whether their suggestions break rules
@@ -43,6 +42,7 @@
  * g  roups
  *        - if (windmill + wheat > add wheat)
  *        - if (double + small + market > new double + market)
+ *  - marketplaces use State class
  *
  * TODOs:
  *  - investigate sectors
@@ -156,6 +156,7 @@ public class MyBot extends ChallengeBot {
     double food;
     double materials;
     double money;
+
     Score(double food, double materials, double money) {
       this.food = food;
       this.materials = materials;
@@ -167,10 +168,21 @@ public class MyBot extends ChallengeBot {
                        other.money - this.money);
     }
 
+    void add(Score other) {
+      this.food += other.food;
+      this.materials += other.materials;
+      this.money += other.money;
+    }
+
     @Override
     public int compareTo(Score other) {
       return Double.compare((this.food + this.materials + this.money),
                             (other.food + other.materials + other.money));
+    }
+
+    public String toString() {
+      return "food=" + this.food + " materials=" + this.materials +
+          " money=" + this.money;
     }
   }
 
@@ -183,8 +195,9 @@ public class MyBot extends ChallengeBot {
     Group(MyBot bot) { this.bot = bot; }
 
     ResourceType res_type;
+    TileType type;
 
-    abstract double calc_score();
+    abstract Score calc_score();
 
     abstract boolean accepts(TileType type);
 
@@ -198,13 +211,13 @@ public class MyBot extends ChallengeBot {
       return score;
     }
 
-    public void suggest_all(TileType type) {
-      for (var cplacable : this.coords_placable) {
+    public void suggest_all() {
+      for (var cplacable : this.bot.coords_placable) {
         this.bot.director.suggest(new PlacementSuggestion(
-            type, cplacable,
-            this.calc_suggested_new_global_score(type, cplacable)
+            this.type, cplacable,
+            this.calc_suggested_new_global_score(this.type, cplacable)
                 .delta(this.bot.director.get_global_score()),
-            new TileInfo(type, this)));
+            new TileInfo(this.type, this)));
       }
     }
 
@@ -242,21 +255,26 @@ public class MyBot extends ChallengeBot {
      * - have 9 connected Wheat Tiles
      **/
 
-    WheatGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
+    WheatGroup(MyBot bot) {
       super(bot);
       super.res_type = ResourceType.Food;
+      super.type = TileType.Wheat;
     }
 
     public double calc_score_of_wheats(CubeCoordinate coord) {
-      int w = this.bot.group_count(TileType.Wheat, coord);
+      double w = (double)this.bot.group_count(TileType.Wheat, coord);
       double s = (w <= 9) ? 4.0f : -2.5f;
-      return w *
+      double individual =
           (Math.pow(Math.E, -Math.pow(((w - 9.0f) / s), 2.0f)) * 2.4f + 0.1f);
+      return w * individual;
     }
 
     @Override
-    public double calc_score() {
-      return this.calc_score_of_wheats(this.tiles.keySet().iterator().next());
+    public Score calc_score() {
+      double s = 0.0f;
+      if (this.tiles.keySet().iterator().hasNext())
+        s = this.calc_score_of_wheats(this.tiles.keySet().iterator().next());
+      return new Score(s, 0.0f, 0.0f);
     }
 
     @Override
@@ -271,9 +289,10 @@ public class MyBot extends ChallengeBot {
      * - group members all close together (implied)
      **/
 
-    ForestGroup(MyBot bot, CubeCoordinate new_coord) throws Exception {
+    ForestGroup(MyBot bot) {
       super(bot);
       super.res_type = ResourceType.Materials;
+      super.type = TileType.Forest;
     }
 
     public double calc_score_of_forest(CubeCoordinate start) {
@@ -293,8 +312,11 @@ public class MyBot extends ChallengeBot {
     }
 
     @Override
-    public double calc_score() {
-      return this.calc_score_of_forest(this.tiles.keySet().iterator().next());
+    public Score calc_score() {
+      double s = 0.0f;
+      if (this.tiles.keySet().iterator().hasNext())
+        s = this.calc_score_of_forest(this.tiles.keySet().iterator().next());
+      return new Score(0.0f, s, 0.0f);
     }
 
     @Override
@@ -308,13 +330,13 @@ public class MyBot extends ChallengeBot {
     CubeCoordinate coord;
     TileType type;
 
-    abstract double calc_score();
-
-    TileRepr(MyBot bot, CubeCoordinate coord, TileType type) {
+    TileRepr(MyBot bot, TileType type) {
       this.bot = bot;
-      this.coord = coord;
       this.type = type;
     }
+
+    // TileRepr has been accepted, so now remember position
+    public void set_coord(CubeCoordinate coord) { this.coord = coord; }
 
     public Score calc_suggested_new_global_score(TileType newtype,
                                                  CubeCoordinate coord) {
@@ -323,6 +345,9 @@ public class MyBot extends ChallengeBot {
       this.bot.map.remove(coord);
       return score;
     }
+
+    abstract Score calc_score(CubeCoordinate coord);
+    Score calc_score() { return this.calc_score(this.coord); }
 
     public void suggest_all() {
       for (var cplacable : this.bot.coords_placable) {
@@ -336,13 +361,12 @@ public class MyBot extends ChallengeBot {
   }
 
   class WindmillRepr extends TileRepr {
-    WindmillRepr(MyBot bot, CubeCoordinate coord) {
-      super(bot, coord, TileType.Wheat);
-    }
+    WindmillRepr(MyBot bot) { super(bot, TileType.Wheat); }
 
-    public double calc_score() {
+    @Override
+    public Score calc_score(CubeCoordinate coord) {
       int w = 0;
-      for (var cneighbor : this.coord.getArea(3)) {
+      for (var cneighbor : coord.getArea(3)) {
         var ct = this.bot.map.get(cneighbor);
         if (ct == null || ct.type != TileType.Wheat)
           continue;
@@ -367,19 +391,18 @@ public class MyBot extends ChallengeBot {
 
       double score = 2 * w * (1 - (f * 0.5f));
 
-      return score;
+      return new Score(score, 0.0f, 0.0f);
     }
   }
 
   class BeehiveRepr extends TileRepr {
-    BeehiveRepr(MyBot bot, CubeCoordinate coord) {
-      super(bot, coord, TileType.Beehive);
-    }
+    BeehiveRepr(MyBot bot) { super(bot, TileType.Beehive); }
 
-    public double calc_score() {
+    @Override
+    public Score calc_score(CubeCoordinate coord) {
       int f = 0;
       int w = 0;
-      for (var cneighbor : this.coord.getArea(2)) {
+      for (var cneighbor : coord.getArea(2)) {
         var ct = this.bot.map.get(cneighbor);
         if (ct == null)
           continue;
@@ -389,42 +412,43 @@ public class MyBot extends ChallengeBot {
           f++;
       }
 
-      return Math.log((f + 1) * (w + 1)) * 0.6f;
+      double score = Math.log((f + 1) * (w + 1)) * 0.6f;
+
+      return new Score(score, 0.0f, 0.0f);
     }
   }
 
   class MoaiRepr extends TileRepr {
     CubeCoordinate coord;
 
-    MoaiRepr(MyBot bot, CubeCoordinate coord) {
-      super(bot, coord, TileType.Moai);
-    }
+    MoaiRepr(MyBot bot) { super(bot, TileType.Moai); }
 
     @Override
-    public double calc_score() {
+    public Score calc_score(CubeCoordinate coord) {
       Set<TileType> unique = new LinkedHashSet<>();
-      for (var cneighbor : this.coord.getArea(4)) {
+      for (var cneighbor : coord.getArea(4)) {
         var un = this.bot.map.get(cneighbor);
         if (un != null)
           unique.add(un.type);
       }
-      return 1 + 0.5f * Math.max(0, unique.size() - 2);
+      double score = 1 + 0.5f * Math.max(0, unique.size() - 2);
+      return new Score(score, score, score); // single score, ew
     }
   }
 
   class MarketplaceRepr extends TileRepr {
-    MarketplaceRepr(MyBot bot, CubeCoordinate coord) {
-      super(bot, coord, TileType.Marketplace);
-    }
+    boolean configured = false;
+
+    MarketplaceRepr(MyBot bot) { super(bot, TileType.Marketplace); }
 
     @Override
-    public double calc_score() {
+    public Score calc_score(CubeCoordinate coord) {
       double f_rate = this.bot.market_get_food_rate();
       double m_rate = this.bot.market_get_materials_rate();
 
       int h = 0;
       int d = 0;
-      for (var cring : this.coord.getRing(1)) {
+      for (var cring : coord.getRing(1)) {
         var t = this.bot.map.get(cring);
         if (t == null)
           continue;
@@ -440,14 +464,14 @@ public class MyBot extends ChallengeBot {
       double f = 1.0f;
       double m = 1.0f;
 
-      return (f * f_rate + m * m_rate) * e;
+      double score = (f * f_rate + m * m_rate) * e;
+
+      return new Score(0.0f, 0.0f, score);
     }
   }
 
   class DoubleHouseRepr extends TileRepr {
-    DoubleHouseRepr(MyBot bot, CubeCoordinate coord) throws Exception {
-      super(bot, coord, TileType.DoubleHouse);
-    }
+    DoubleHouseRepr(MyBot bot) { super(bot, TileType.DoubleHouse); }
 
     public double calc_score_of_dhouse(CubeCoordinate coord) {
       double best_boost = this.bot.get_best_boost(coord);
@@ -466,15 +490,13 @@ public class MyBot extends ChallengeBot {
     }
 
     @Override
-    public double calc_score() {
-      return this.calc_score_of_dhouse(this.coord);
+    public Score calc_score(CubeCoordinate coord) {
+      return new Score(0.0f, 0.0f, this.calc_score_of_dhouse(coord));
     }
   }
 
   class SmallHouseRepr extends TileRepr {
-    SmallHouseRepr(MyBot bot, CubeCoordinate coord) throws Exception {
-      super(bot, coord, TileType.SmallHouse);
-    }
+    SmallHouseRepr(MyBot bot) { super(bot, TileType.SmallHouse); }
 
     public double calc_score_of_shouse(CubeCoordinate coord) {
       double best_boost = this.bot.get_best_boost(coord);
@@ -482,43 +504,38 @@ public class MyBot extends ChallengeBot {
     }
 
     @Override
-    public double calc_score() {
-      return this.calc_score_of_shouse(this.coord);
+    public Score calc_score(CubeCoordinate coord) {
+      return new Score(0.0f, 0.0f, this.calc_score_of_shouse(coord));
     }
   }
 
   class GrassRepr extends TileRepr {
-    GrassRepr(MyBot bot, CubeCoordinate coord) {
-      super(bot, coord, TileType.Grass);
-    }
+    GrassRepr(MyBot bot) { super(bot, TileType.Grass); }
 
     // lol by itself it does nothing, but added to the map, maybe
     @Override
-    public double calc_score() {
-      return 0.0f;
+    public Score calc_score(CubeCoordinate coord) {
+      return new Score(0.0f, 0.0f, 0.0f);
     }
   }
 
   class StoneRepr extends TileRepr {
-    StoneRepr(MyBot bot, CubeCoordinate coord, TileType stone) {
-      super(bot, coord, stone);
-    }
+    StoneRepr(MyBot bot, TileType stone) { super(bot, stone); }
 
+    // lol by itself it does nothing, but added to the map, maybe
     @Override
-    public double calc_score() {
-      return 0.0f; // lol by itself it does nothing, but added to the map, maybe
+    public Score calc_score(CubeCoordinate coord) {
+      return new Score(0.0f, 0.0f, 0.0f);
     }
   }
 
   class QuarryRepr extends TileRepr {
-    QuarryRepr(MyBot bot, CubeCoordinate coord) {
-      super(bot, coord, TileType.StoneQuarry);
-    }
+    QuarryRepr(MyBot bot) { super(bot, TileType.StoneQuarry); }
 
     @Override
-    public double calc_score() {
+    public Score calc_score(CubeCoordinate coord) {
       int max_l = 0;
-      for (var cring : this.coord.getRing(1)) {
+      for (var cring : coord.getRing(1)) {
         var t = this.bot.map.get(cring);
         if (t == null)
           continue;
@@ -547,14 +564,34 @@ public class MyBot extends ChallengeBot {
         if (max_l >= l)
           max_l = l;
       }
-      return 5 * max_l;
+
+      double score = 5 * max_l;
+
+      return new Score(0.0f, score, 0.0f);
     }
   }
 
   class State {
     // holds the various lists for the bot that are used to represent
     // information about the game map in a non Map<>'y fashion
+
+    // the haves
+    Set<Group> wheats = new LinkedHashSet<>();
+    Set<Group> forests = new LinkedHashSet<>();
+    Set<TileRepr> windmills = new LinkedHashSet<>();
+    Set<TileRepr> quarries = new LinkedHashSet<>();
+    Set<TileRepr> marketplaces = new LinkedHashSet<>();
+    Set<TileRepr> dhouses = new LinkedHashSet<>();
+    Set<TileRepr> shouses = new LinkedHashSet<>();
+    Set<TileRepr> beehives = new LinkedHashSet<>();
+
+    // the have-nots
+    Set<TileRepr> moais = new LinkedHashSet<>();
+    Set<TileRepr> grass = new LinkedHashSet<>();
+    Set<TileRepr> stones = new LinkedHashSet<>();
   }
+
+  State state = new State();
 
   abstract class Director {
     MyBot bot;
@@ -563,8 +600,9 @@ public class MyBot extends ChallengeBot {
     TreeSet<PlacementSuggestion> suggestions =
         new TreeSet<PlacementSuggestion>();
 
-    abstract TileType get_preferred_tile(Set<TileType> hand);
+    abstract TileType get_preferred_tile(List<TileType> hand);
     abstract PlacementSuggestion pick();
+    abstract void ask_for_suggestions();
 
     Director(MyBot bot) { this.bot = bot; }
 
@@ -574,8 +612,58 @@ public class MyBot extends ChallengeBot {
       this.suggestions.add(suggestion);
     }
 
-    // TODO(ayham-1): implement
-    Score get_global_score() { return new Score(0.0f, 0.0f, 0.0f); };
+    void accept_suggestion(PlacementSuggestion suggestion) {
+      // i'm sorry for this atrocity...
+      if (suggestion.info.associated_group != null) {
+        if (suggestion.info.associated_group instanceof WheatGroup)
+          this.bot.state.wheats.add(suggestion.info.associated_group);
+        else if (suggestion.info.associated_group instanceof ForestGroup)
+          this.bot.state.forests.add(suggestion.info.associated_group);
+      } else if (suggestion.info.associated_repr != null) {
+        if (suggestion.info.associated_repr instanceof WindmillRepr)
+          this.bot.state.windmills.add(suggestion.info.associated_repr);
+        else if (suggestion.info.associated_repr instanceof QuarryRepr)
+          this.bot.state.quarries.add(suggestion.info.associated_repr);
+        else if (suggestion.info.associated_repr instanceof MarketplaceRepr)
+          this.bot.state.marketplaces.add(suggestion.info.associated_repr);
+        else if (suggestion.info.associated_repr instanceof MoaiRepr)
+          this.bot.state.moais.add(suggestion.info.associated_repr);
+        else if (suggestion.info.associated_repr instanceof GrassRepr)
+          this.bot.state.grass.add(suggestion.info.associated_repr);
+        else if (suggestion.info.associated_repr instanceof StoneRepr)
+          this.bot.state.stones.add(suggestion.info.associated_repr);
+      }
+
+      if (suggestion.info.associated_group != null)
+        suggestion.info.associated_group.add_tile(suggestion.info.type,
+                                                  suggestion.coord);
+
+      if (suggestion.info.associated_repr != null)
+        suggestion.info.associated_repr.set_coord(suggestion.coord);
+
+      this.bot.place_tile(suggestion.coord, suggestion.info);
+    }
+
+    Score get_global_score() {
+      Score score = new Score(0.0f, 0.0f, 0.0f);
+
+      for (var wheat_grp : this.bot.state.wheats)
+        score.add(wheat_grp.calc_score());
+
+      for (var forest_grp : this.bot.state.forests)
+        score.add(forest_grp.calc_score());
+
+      for (var windmill : this.bot.state.windmills)
+        score.add(windmill.calc_score());
+
+      for (var quarry : this.bot.state.quarries)
+        score.add(quarry.calc_score());
+
+      for (var marketplace : this.bot.state.marketplaces)
+        score.add(marketplace.calc_score());
+
+      return score;
+    };
   }
 
   class GreedyDictator extends Director {
@@ -585,13 +673,106 @@ public class MyBot extends ChallengeBot {
     GreedyDictator(MyBot bot) { super(bot); }
 
     @Override
-    TileType get_preferred_tile(Set<TileType> hand) {
-      return TileType.Wheat;
+    TileType get_preferred_tile(List<TileType> hand) {
+      ResourceType needed = ResourceType.Money;
+      if (this.bot.resource_growth.money <= this.bot.resource_growth.food &&
+          this.bot.resource_growth.money <=
+              this.bot.resource_growth.materials) {
+        needed = ResourceType.Money;
+      } else if (this.bot.resource_growth.food <=
+                     this.bot.resource_growth.money &&
+                 this.bot.resource_growth.food <=
+                     this.bot.resource_growth.materials) {
+        needed = ResourceType.Food;
+      } else if (this.bot.resource_growth.materials <=
+                     this.bot.resource_growth.money &&
+                 this.bot.resource_growth.materials <=
+                     this.bot.resource_growth.food) {
+        needed = ResourceType.Materials;
+      }
+
+      for (var card : hand) {
+        if (this.bot.get_resource_type(card) == needed)
+          return card;
+      }
+
+      return hand.iterator().next();
     }
 
     @Override
     PlacementSuggestion pick() {
-      return this.suggestions.last();
+      return this.suggestions.first();
+    }
+
+    @Override
+    void ask_for_suggestions() {
+      TileType card = this.get_preferred_tile(this.bot.world.getHand().hand);
+
+      Set<Group> group_set = null;
+      Set<TileRepr> repr_set = null;
+
+      // do creating new groups
+      if (card == TileType.Marketplace) {
+        repr_set = this.bot.state.marketplaces;
+        MarketplaceRepr repr = new MarketplaceRepr(this.bot);
+        repr.suggest_all();
+      } else if (card == TileType.Grass) {
+        repr_set = this.bot.state.grass;
+        GrassRepr repr = new GrassRepr(this.bot);
+        repr.suggest_all();
+      } else if (card == TileType.StoneHill) {
+        repr_set = this.bot.state.stones;
+        StoneRepr repr = new StoneRepr(this.bot, card);
+        repr.suggest_all();
+      } else if (card == TileType.StoneMountain) {
+        repr_set = this.bot.state.stones;
+        StoneRepr repr = new StoneRepr(this.bot, card);
+        repr.suggest_all();
+      } else if (card == TileType.StoneRocks) {
+        repr_set = this.bot.state.stones;
+        StoneRepr repr = new StoneRepr(this.bot, card);
+        repr.suggest_all();
+      } else if (card == TileType.Wheat) {
+        group_set = this.bot.state.wheats;
+        WheatGroup grp = new WheatGroup(this.bot);
+        grp.suggest_all();
+      } else if (card == TileType.Forest) {
+        group_set = this.bot.state.forests;
+        ForestGroup grp = new ForestGroup(this.bot);
+        grp.suggest_all();
+      } else if (card == TileType.DoubleHouse) {
+        repr_set = this.bot.state.dhouses;
+        DoubleHouseRepr repr = new DoubleHouseRepr(this.bot);
+        repr.suggest_all();
+      } else if (card == TileType.SmallHouse) {
+        repr_set = this.bot.state.shouses;
+        SmallHouseRepr repr = new SmallHouseRepr(this.bot);
+        repr.suggest_all();
+      } else if (card == TileType.Windmill) {
+        repr_set = this.bot.state.windmills;
+        WindmillRepr repr = new WindmillRepr(this.bot);
+        repr.suggest_all();
+      } else if (card == TileType.Beehive) {
+        repr_set = this.bot.state.beehives;
+        BeehiveRepr repr = new BeehiveRepr(this.bot);
+        repr.suggest_all();
+      } else if (card == TileType.StoneQuarry) {
+        repr_set = this.bot.state.quarries;
+        QuarryRepr repr = new QuarryRepr(this.bot);
+        repr.suggest_all();
+      } else if (card == TileType.Moai) {
+        repr_set = this.bot.state.moais;
+        MoaiRepr repr = new MoaiRepr(this.bot);
+        repr.suggest_all();
+      }
+
+      if (group_set != null) {
+        for (var group : group_set)
+          group.suggest_all();
+      } else if (repr_set != null) {
+        for (var repr : repr_set)
+          repr.suggest_all();
+      }
     }
   }
 
@@ -606,12 +787,6 @@ public class MyBot extends ChallengeBot {
   boolean is_first = true;
   boolean must_win = false;
   boolean redrawn = false;
-
-  /* stores all groups that are tracked on the map,
-   * there is no garantue that all tiles are in a group,
-   * or that each tile appears in a single group.
-   * */
-  ArrayList<Group> groups = new ArrayList<>();
 
   // track the map ourselves
   Map<CubeCoordinate, TileInfo> map = new LinkedHashMap<>();
@@ -771,102 +946,14 @@ public class MyBot extends ChallengeBot {
       is_first = false;
     }
 
-    // TODO(ayham-1): clear on empty hand, and remove suggestions when done
-    this.suggests_food.clear();
-    this.suggests_money.clear();
-    this.suggests_materials.clear();
-    this.suggests_grass.clear(); // ugh 3
-
-    for (var card : world.getHand()) {
-      if (!controller.actionPossible())
-        return;
-
-      if (card == TileType.Marketplace) {
-        this.place_marketplace();
-      } else if (card == TileType.Grass) {
-        this.place_grass();
-      } else if (card == TileType.StoneHill) {
-        this.place_stonehill();
-      } else if (card == TileType.StoneMountain) {
-        this.place_stonemountain();
-      } else if (card == TileType.StoneRocks) {
-        this.place_stonerocks();
-      } else if (card == TileType.Wheat) {
-        this.place_wheat();
-      } else if (card == TileType.Forest) {
-        this.place_forest();
-      } else if (card == TileType.DoubleHouse) {
-        this.place_doublehouse();
-      } else if (card == TileType.SmallHouse) {
-        this.place_smallhouse();
-      } else if (card == TileType.Windmill) {
-        this.place_windmill();
-      } else if (card == TileType.Beehive) {
-        this.place_beehive();
-      } else if (card == TileType.StoneQuarry) {
-        this.place_stonequarry();
-      } else if (card == TileType.Moai) {
-        this.place_moai();
-      }
+    this.director.new_card();
+    if (!this.world.getHand().isEmpty() && !this.coords_placable.isEmpty()) {
+      this.director.ask_for_suggestions();
+      this.director.accept_suggestion(this.director.pick());
     }
 
-    Set<PlacementSuggestion> suggestions_most = null;
-    Set<PlacementSuggestion> suggestions_mid = null;
-    Set<PlacementSuggestion> suggestions_least = null;
-    if (this.resource_growth.money <= this.resource_growth.food &&
-        this.resource_growth.money <= this.resource_growth.materials) {
-      suggestions_most = this.suggests_money;
-      if (this.resource_growth.food <= this.resource_growth.materials) {
-        suggestions_mid = this.suggests_food;
-        suggestions_least = this.suggests_materials;
-      } else {
-        suggestions_mid = this.suggests_materials;
-        suggestions_least = this.suggests_food;
-      }
-    } else if (this.resource_growth.food <= this.resource_growth.money &&
-               this.resource_growth.food <= this.resource_growth.materials) {
-      suggestions_most = this.suggests_food;
-      if (this.resource_growth.money <= this.resource_growth.materials) {
-        suggestions_mid = this.suggests_money;
-        suggestions_least = this.suggests_materials;
-      } else {
-        suggestions_mid = this.suggests_materials;
-        suggestions_least = this.suggests_money;
-      }
-    } else if (this.resource_growth.materials <= this.resource_growth.money &&
-               this.resource_growth.materials <= this.resource_growth.food) {
-      suggestions_most = this.suggests_materials;
-      if (this.resource_growth.money <= this.resource_growth.food) {
-        suggestions_mid = this.suggests_money;
-        suggestions_least = this.suggests_food;
-      } else {
-        suggestions_mid = this.suggests_food;
-        suggestions_least = this.suggests_money;
-      }
-    }
-
-    // if (!this.controller.actionPossible())
-    //   return;
-
-    // this.process_suggestions(suggestions_most);
-    // suggestions_most.clear();
-
-    // if (!this.controller.actionPossible())
-    //   return;
-
-    // this.process_suggestions(suggestions_mid);
-    // suggestions_mid.clear();
-
-    // if (!this.controller.actionPossible())
-    //   return;
-
-    // this.process_suggestions(suggestions_least);
-    // suggestions_least.clear();
-
-    // if (!this.controller.actionPossible())
-    //   return;
-
-    // this.process_suggestions(this.suggests_grass); // ugh 2
+    // Score crnt = this.director.get_global_score();
+    // System.out.println(crnt.toString());
   }
 
   void place_marketplace() {}
@@ -895,12 +982,12 @@ public class MyBot extends ChallengeBot {
 
   void place_moai() {}
 
-  boolean place_tile(TileType type, CubeCoordinate coord, Group grp) {
-    System.out.println("want " + type + " on " + coord);
+  boolean place_tile(CubeCoordinate coord, TileInfo info) {
+    System.out.println("want " + info.type + " on " + coord);
     if (coord == null)
       return false;
     System.out.println("is_coord_usable: " +
-                       (world.getMap().at(coord) == null));
+                       (this.world.getMap().at(coord) == null));
     if (world.getMap().at(coord) != null)
       return false;
 
@@ -908,12 +995,12 @@ public class MyBot extends ChallengeBot {
       return false;
 
     try {
-      controller.placeTile(type, coord);
+      controller.placeTile(info.type, coord); // the heart of it all...
     } catch (Exception e) {
       System.out.println("SOMETHING VERY BAD HAPPENED HELP HELP: " +
                          e.toString());
     } finally {
-      this.map.put(coord, new TileInfo(type, grp));
+      this.map.put(coord, info);
       // world does not actually update when calling controller.placeTile() in
       // the same turn
       for (var cring : coord.getRing(1)) {
@@ -925,8 +1012,10 @@ public class MyBot extends ChallengeBot {
       if (this.coords_placable.contains(coord))
         this.coords_placable.remove(coord);
 
-      for (var group : this.groups)
-        group.update_coords_placable(coord);
+      for (var wheat_group : this.state.wheats)
+        wheat_group.update_coords_placable(coord);
+      for (var forest_group : this.state.forests)
+        forest_group.update_coords_placable(coord);
     }
 
     // this.coords_placable.removeIf(t -> !world.getBuildArea().contains(t));
@@ -967,8 +1056,10 @@ public class MyBot extends ChallengeBot {
         this.coords_placable.add(c);
     }
 
-    for (var group : this.groups)
-      group.update_coords_placable();
+    for (var wheat_group : this.state.wheats)
+      wheat_group.update_coords_placable();
+    for (var forest_group : this.state.forests)
+      forest_group.update_coords_placable();
   }
 
   double market_get_food_rate() {
@@ -1032,6 +1123,17 @@ public class MyBot extends ChallengeBot {
     group_count_set(type, start, coord);
 
     return coord.size();
+  }
+
+  ResourceType get_resource_type(TileType type) {
+    if (type == TileType.Wheat || type == TileType.Beehive ||
+        type == TileType.Windmill)
+      return ResourceType.Food;
+    else if (type == TileType.StoneHill || type == TileType.StoneRocks ||
+             type == TileType.StoneMountain || type == TileType.StoneQuarry)
+      return ResourceType.Materials;
+    else
+      return ResourceType.Money;
   }
 
   void update_resources_stat() {
