@@ -1,0 +1,960 @@
+{
+  "gamemode": "Challenge",
+  "round": 6,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "11020906751778293460",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 34181.4,
+    "materials": 44536.906,
+    "money": 19652.98
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "15971049222887618596",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 38297.633,
+    "materials": 69645.98,
+    "money": 38858.82
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "5209883426508113414",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 50174.96,
+    "materials": 73098.26,
+    "money": 74079.92
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "17675033187244706423",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 39018.008,
+    "materials": 58765.82,
+    "money": 41965.445
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 3,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "1403362484080562836",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 3653.536,
+    "materials": 11902.566,
+    "money": 5429.4365
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "13748261198731744835",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 40904.54,
+    "materials": 48752.348,
+    "money": 40920.83
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "7641370669167164074",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 52905.19,
+    "materials": 55783.887,
+    "money": 55847.207
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "307215983089736797",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 51375.773,
+    "materials": 64929.332,
+    "money": 55426.098
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 7,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "4543944001804071853",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 29860.24,
+    "materials": 42742.92,
+    "money": 39341.715
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "8529640585724184244",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 50846.0,
+    "materials": 85236.11,
+    "money": 74439.086
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "15664244314023217415",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 52203.434,
+    "materials": 81981.8,
+    "money": 82096.38
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 10,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "1845494070809154105",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 69727.4,
+    "materials": 96204.6,
+    "money": 78904.75
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "12396832719046315851",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 50417.76,
+    "materials": 61813.406,
+    "money": 55848.574
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "15720395128046819576",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 53646.105,
+    "materials": 75305.56,
+    "money": 69991.14
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "11181820935981081042",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 38540.86,
+    "materials": 61470.203,
+    "money": 61362.055
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 1,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "3180071086185630655",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 154.77707,
+    "materials": 1697.0837,
+    "money": 1327.5785
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "6859180860516918430",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 50696.902,
+    "materials": 75954.72,
+    "money": 64003.637
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 7,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "1836304976395590380",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 27560.79,
+    "materials": 48893.117,
+    "money": 39732.277
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "11173916474518166610",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 36374.445,
+    "materials": 63916.35,
+    "money": 49041.168
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "8078451255598089311",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 40055.785,
+    "materials": 47052.16,
+    "money": 49732.32
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "6965984942939326884",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 51412.62,
+    "materials": 80897.0,
+    "money": 88521.68
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "14954717275954831764",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 40362.293,
+    "materials": 56122.66,
+    "money": 49121.04
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 7,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "11799014866553757530",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 24708.404,
+    "materials": 32029.943,
+    "money": 27082.87
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "10258050898167290835",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 40525.71,
+    "materials": 57017.555,
+    "money": 48189.645
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "9311104709426547292",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 53127.777,
+    "materials": 61345.523,
+    "money": 58928.496
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 10,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "15848036577210542998",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 74287.805,
+    "materials": 83538.06,
+    "money": 83255.93
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "7469812969999773216",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 39985.17,
+    "materials": 73601.18,
+    "money": 62503.066
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 3,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "6666037203441786061",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 3450.2566,
+    "materials": 6814.1587,
+    "money": 6942.939
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 8,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "5511171908882686270",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 36269.938,
+    "materials": 47845.332,
+    "money": 39491.19
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 7,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "13267623568225041066",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 28380.814,
+    "materials": 43545.254,
+    "money": 36659.3
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "1846421924998718039",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 55618.215,
+    "materials": 67892.06,
+    "money": 64072.355
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "7595537820348901998",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 52478.625,
+    "materials": 76710.11,
+    "money": 76683.6
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 6,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "11829619256032777350",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 19012.676,
+    "materials": 35919.54,
+    "money": 39841.816
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "7137971398982136896",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 52091.27,
+    "materials": 87241.195,
+    "money": 87396.12
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 10,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "1184482058816735763",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 73035.03,
+    "materials": 77239.35,
+    "money": 76076.41
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "AuD",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 50359.805,
+    "materials": 91642.92,
+    "money": 81814.61
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+{
+  "gamemode": "Challenge",
+  "round": 9,
+  "record": null,
+  "campaign": null,
+  "challenge": {
+    "seed": "TTE",
+    "difficulty": "Medium"
+  },
+  "metrics": {
+    "food": 53731.78,
+    "materials": 80662.43,
+    "money": 68669.945
+  },
+  "warnings": {
+    "place": 0,
+    "take": 0,
+    "reward": 0,
+    "redraw": 0,
+    "market": 0
+  },
+  "success": true
+}
+Run 1:
+
+Run 2:
+
+Run 3:
+
+Run 4:
+
+Run 5:
+
+Run 6:
+
+Run 7:
+
+Run 8:
+
+Run 9:
+
+Run 10:
+
+Run 11:
+
+Run 12:
+
+Run 13:
+
+Run 14:
+
+Run 15:
+
+Run 16:
+
+Run 17:
+
+Run 18:
+
+Run 19:
+
+Run 20:
+
+Run 21:
+
+Run 22:
+
+Run 23:
+
+Run 24:
+
+Run 25:
+
+Run 26:
+
+Run 27:
+
+Run 28:
+
+Run 29:
+
+Run 30:
+
+Run 31:
+
+Run 32:
+
+Run 33:
+
+Run 34:
+
+Run 35:
+
+Average round value over 35 runs: 7.83
+Average food value over 35 runs: 41581.20
+Average materials value over 35 runs: 58784.06
+Average moneys value over 35 runs: 52650.51
+
+Standard deviation of rounds over 35 runs: 1.992
+Standard deviation of food over 35 runs: 17461.217
+Standard deviation of materials over 35 runs: 22397.208
+Standard deviation of moneys over 35 runs: 22993.830
+
+Rounds Histogram: 
+ 1 | █ (1)
+ 3 | ██ (2)
+ 6 | ██ (2)
+ 7 | ████ (4)
+ 8 | ██████████ (10)
+ 9 | █████████████ (13)
+10 | ███ (3)
+Calculating known seeds
+Running seed AuD
+Running seed TTE
+Average round value over 37 runs: 7.89
+Average food value over 37 runs: 42146.86
+Average materials value over 37 runs: 60263.44
+Average moneys value over 37 runs: 53871.69
+
+Standard deviation of rounds over 37 runs: 1.955
+Standard deviation of food over 37 runs: 17142.589
+Standard deviation of materials over 37 runs: 22689.313
+Standard deviation of moneys over 37 runs: 22990.542
+
+Rounds Histogram: 
+ 1 | █ (1)
+ 3 | ██ (2)
+ 6 | ██ (2)
+ 7 | ████ (4)
+ 8 | ██████████ (10)
+ 9 | ███████████████ (15)
+10 | ███ (3)

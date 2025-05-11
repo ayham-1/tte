@@ -46,6 +46,7 @@
  *  - 4905031204093094641
  *  - 13159963882866694334
  *  - 6196504161327325917
+ *  - 4651505693100974723
  *
  *
  * Bob I:
@@ -1370,7 +1371,7 @@ public class MyBot extends ChallengeBot {
             suggestion.info.type != TileType.Wheat &&
             suggestion.info.type != TileType.Beehive) {
           for (var windmill : this.bot.state.windmills) {
-            for (var cneighbor : windmill.coord.getArea(3)) {
+            for (var cneighbor : windmill.coord.getArea(2)) {
               if (suggestion.coord.equals(cneighbor)) {
                 rule_windmill_avoid_non_wheat = true;
                 System.out.println("[rule] avoid windmills when placing "
@@ -1479,13 +1480,10 @@ public class MyBot extends ChallengeBot {
         boolean rule_stones_beside_windmill = false;
         if (suggestion.info.type == TileType.StoneHill ||
             suggestion.info.type == TileType.StoneRocks ||
-            suggestion.info.type == TileType.StoneMountain) {
-          for (var cring : suggestion.coord.getRing(1)) {
-            var ct = this.bot.map.get(cring);
-            if (ct == null)
-              continue;
-
-            if (ct.type == TileType.Windmill) {
+            suggestion.info.type == TileType.StoneMountain ||
+            suggestion.info.type == TileType.StoneQuarry) {
+          for (var windmill : this.bot.state.windmills) {
+            if (windmill.coord.distance(suggestion.coord) <= 3) {
               rule_stones_beside_windmill = true;
               System.out.println("[rule] stones not beside windmill");
               break;
@@ -1552,7 +1550,8 @@ public class MyBot extends ChallengeBot {
 
   class StrictDictator extends Director {
     /* strict dictator, has the most intended rules, does not fain from
-     * rejecting suggestions or placements
+     * rejecting suggestions or placements, rules are to be followed,
+     * does not care about anything other than the rules.
      * Rules:
      *  read the code you lazy
      * */
@@ -1597,9 +1596,6 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_windmills_not_beside_forest(suggestion))
           continue;
 
-        // if (this.rules.apply_shouses_grouped(suggestion))
-        //   continue;
-
         if (this.rules.apply_dhouse_less_than_3(suggestion))
           continue;
 
@@ -1616,9 +1612,79 @@ public class MyBot extends ChallengeBot {
         break;
       }
 
-      if (best != null && best.info.associated_group != null) {
-        System.out.println(best.info.associated_group.type);
-        System.out.println(best.info.associated_group.coords_placable.size());
+      return best;
+    }
+  }
+
+  class DynamicDictator extends Director {
+    /* dynamic dictator, follows rules, but doesn't worship them,
+     * sometimes rules are meant to be broken, and this dictator
+     * calculates when to break them. sometimes rules are outdated
+     * mid-game, or sometimes rules are meant for late-game
+     *
+     * Rules:
+     *  read the code you lazy
+     * */
+
+    DynamicDictator(MyBot bot) { super(bot); }
+
+    @Override
+    int redraw_max_times() {
+      return this.redraw_max_times(0.10f, 5.0f, 0.00f);
+    }
+
+    @Override
+    boolean do_redraw() {
+      return this.do_redraw(3.0f / 5.0f, 0.0f);
+    }
+
+    @Override
+    PlacementSuggestion pick() {
+      PlacementSuggestion best = null;
+
+      Collections.sort(this.suggestions);
+
+      for (var suggestion : this.suggestions.reversed()) {
+        if (this.rules.apply_wheat_groups_less_than_9(suggestion) &&
+            this.bot.round <= 5)
+          continue;
+
+        if (this.rules.apply_wheat_not_to_join_other_together(suggestion) &&
+            this.bot.round <= 5)
+          continue;
+
+        if (this.rules.apply_wheat_groups_not_enclosed(suggestion) &&
+            this.bot.round <= 5)
+          continue;
+
+        if (this.rules.apply_windmills_per_wheat(suggestion))
+          continue;
+
+        if (this.rules.apply_windmills_groupings(suggestion))
+          continue;
+
+        // if (this.rules.apply_wheats_near_windmills_when_possible(suggestion))
+        //   continue;
+
+        if (this.rules.apply_windmills_not_beside_forest(suggestion))
+          continue;
+
+        if (this.rules.apply_dhouse_less_than_3(suggestion))
+          continue;
+
+        if (this.rules.apply_moais_spaced(suggestion))
+          continue;
+
+        if (this.rules.apply_stones_not_beside_wheat(suggestion) &&
+            this.bot.round >= 4)
+          continue;
+
+        if (this.rules.apply_stones_not_beside_windmill(suggestion) &&
+            this.bot.round >= 6)
+          continue;
+
+        best = suggestion;
+        break;
       }
 
       return best;
@@ -1626,7 +1692,8 @@ public class MyBot extends ChallengeBot {
   }
 
   // Director director = new GreedyDictator(this);
-  Director director = new StrictDictator(this);
+  // Director director = new StrictDictator(this);
+  Director director = new DynamicDictator(this);
 
   // API vars
   World world;
@@ -1886,8 +1953,9 @@ public class MyBot extends ChallengeBot {
     double perc_food = 0.0f;
     if (this.resource_current.money >= this.resource_current.food)
       return perc_food;
-    perc_food = Math.pow(Math.E, -2 * ((this.resource_current.money /
-                                        this.resource_current.food)));
+    double ratio = (this.resource_growth.food / this.resource_growth.money);
+    // perc_food = Math.pow(Math.E, -2.25f * ratio);
+    perc_food = Math.log10(ratio * 5.0f);
     return Math.clamp(perc_food, 0.0f, 1.0f);
   }
 
@@ -1895,8 +1963,10 @@ public class MyBot extends ChallengeBot {
     double perc_mat = 0.0f;
     if (this.resource_current.money >= this.resource_current.materials)
       return perc_mat;
-    perc_mat = Math.pow(Math.E, -2 * ((this.resource_current.money /
-                                       this.resource_current.materials)));
+    double ratio =
+        (this.resource_growth.materials / this.resource_growth.money);
+    // perc_mat = Math.pow(Math.E, -2.25f * ratio);
+    perc_mat = Math.log10(ratio * 5.0f);
     return Math.clamp(perc_mat, 0.0f, 1.0f);
   }
 
