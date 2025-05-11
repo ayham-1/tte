@@ -4,6 +4,7 @@ import subprocess
 import json
 import os
 import sys
+import statistics as stat
 
 # Number of times to repeat
 x = int(sys.argv[1])
@@ -41,6 +42,29 @@ def print_all():
     print(f"Average food value over {len(rounds)} runs: {average_food:.2f}")
     print(f"Average materials value over {len(rounds)} runs: {average_materials:.2f}")
     print(f"Average moneys value over {len(rounds)} runs: {average_moneys:.2f}")
+
+    print()
+
+    print(f"Standard deviation of rounds over {len(rounds)} runs: {stat.stdev(rounds):.3f}")
+    print(f"Standard deviation of food over {len(rounds)} runs: {stat.stdev(foods):.3f}")
+    print(f"Standard deviation of materials over {len(rounds)} runs: {stat.stdev(materials):.3f}")
+    print(f"Standard deviation of moneys over {len(rounds)} runs: {stat.stdev(moneys):.3f}")
+
+    print()
+
+    from collections import Counter
+    def print_histogram(data, char='█'):
+        counts = Counter(data)
+        max_key_len = max(len(str(k)) for k in counts)
+        max_val = max(counts.values())
+    
+        for key, count in sorted(counts.items()):
+            bar = char * count
+            print(f"{str(key).rjust(max_key_len)} | {bar} ({count})")
+
+    print("Rounds Histogram: ")
+    print_histogram(rounds)
+
 
 
 # Main loop
