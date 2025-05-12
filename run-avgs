@@ -18,9 +18,28 @@ foods = []
 materials = []
 moneys = []
 
+class Tee:
+    def __init__(self, *files):
+        self.files = files
+
+    def write(self, obj):
+        for f in self.files:
+            f.write(obj)
+            f.flush()
+
+    def flush(self):
+        for f in self.files:
+            f.flush()
+
+# Open a file for writing output
+log= open(sys.argv[2], 'w')
+# Replace sys.stdout with our Tee
+sys.stdout = Tee(sys.stdout, log)
+
 def add_values():
     with open(json_file, "r") as f:
         contents = f.read()
+        print(json.dumps(contents, indent=4))
 
         data = json.loads(contents)
         round_value = data.get("round")
@@ -104,3 +123,5 @@ except subprocess.CalledProcessError as e:
 add_values()
 
 print_all()
+
+log.close()

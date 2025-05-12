@@ -26,12 +26,16 @@
  * important mid-game
  *  - after placing, the getMap() does not update
  *  - avoid() functionality with if ( && ) is not exactly most efficient
- *  - wheat groups can be larger than 9 if windmills are involved
+ *  - wheat groups can be larger than 9 if windmills are involved [geogebra]
  *  - dynamic rules are probably good
  *
  *  Score Calculation Optimization Ideas:
  *  - groups use their tiles when not suggesting new groups
  *  - remember tiles also per Group/TileRepr
+ *
+ * Proposed Rules:
+ *  - force windmills to be secluded when placing them without any wheat
+ * neighbors
  *
  * Current:
  *
@@ -47,6 +51,10 @@
  *  - 13159963882866694334
  *  - 6196504161327325917
  *  - 4651505693100974723
+ *
+ *  - WTF IS HAPPENING HEREEEEE
+ *  - 11201007578510289452
+ *  - 18278146962012266910
  *
  *
  * Bob I:
@@ -81,7 +89,7 @@ import page.codeberg.terratactician_expandoria.world.tiles.*;
 import page.codeberg.terratactician_expandoria.world.tiles.Tile.TileType;
 
 public class MyBot extends ChallengeBot {
-  static final boolean PRINT_DEBUG = false;
+  static final boolean PRINT_DEBUG = true;
 
   @Override
   public int getMatrikel() {
@@ -208,6 +216,16 @@ public class MyBot extends ChallengeBot {
 
     boolean addable() { return !this.coords_placable.isEmpty(); }
 
+    boolean is_on_border() {
+      for (var coord : this.tiles.keySet()) {
+        for (var cring : coord.getRing(1)) {
+          if (!this.bot.world.getBuildArea().contains(cring))
+            return true;
+        }
+      }
+      return false;
+    }
+
     public Score calc_suggested_new_relevant_score(TileInfo info,
                                                    CubeCoordinate coord) {
       this.bot.map.put(coord, info);
@@ -223,7 +241,6 @@ public class MyBot extends ChallengeBot {
         TileInfo info = new TileInfo(this.type, this);
         Score orig = this.bot.director.get_relevant_score(info, cplacable);
         Score s = this.calc_suggested_new_relevant_score(info, cplacable);
-        // s.add(this.calc_score());
         this.bot.director.suggest(
             new PlacementSuggestion(this.type, cplacable, s.delta(orig), info));
       }
@@ -548,7 +565,7 @@ public class MyBot extends ChallengeBot {
         if (un != null)
           unique.add(un.type);
       }
-      double score = 1 + 0.5f * Math.max(0, unique.size() - 2);
+      double score = 1.0f + 0.5f * Math.max(0, unique.size() - 2.0f);
       return score;
     }
 
@@ -592,7 +609,7 @@ public class MyBot extends ChallengeBot {
         if (t.type == TileType.DoubleHouse)
           d++;
       }
-      double e = Math.min(1, ((h + (d * 2)) * 0.4f + 0.2f));
+      double e = Math.min(1, ((h + (d * 2.0f)) * 0.4f + 0.2f));
 
       double f = 0.0f;
       double m = 0.0f;
@@ -759,20 +776,11 @@ public class MyBot extends ChallengeBot {
           var tquarry = this.bot.map.get(cquarry);
           if (tquarry == null)
             continue;
-          // if (cquarry == coord)
-          //   continue;
           if (tquarry.type == TileType.StoneQuarry)
             count_using_quarries++;
         }
 
         int l = 0;
-        // if (t.type == TileType.StoneMountain)
-        //   l = 3;
-        // else if (t.type == TileType.StoneHill)
-        //   l = 2;
-        // else if (t.type == TileType.StoneRocks)
-        //   l = 1;
-
         if (t.type == TileType.StoneMountain && count_using_quarries < 3)
           l = 3;
         else if (t.type == TileType.StoneHill && count_using_quarries < 2)
@@ -871,10 +879,8 @@ public class MyBot extends ChallengeBot {
         double money =
             this.bot.resource_current.money +
             this.bot.resource_growth.money * this.bot.round_time_left;
-
         double food = this.bot.resource_current.food +
                       this.bot.resource_growth.food * this.bot.round_time_left;
-
         double mat =
             this.bot.resource_current.materials +
             this.bot.resource_growth.materials * this.bot.round_time_left;
@@ -882,11 +888,9 @@ public class MyBot extends ChallengeBot {
         double offset_m = (this.bot.resource_growth_delta.money /
                            this.bot.resource_delta_count) *
                           this.bot.round_time_left;
-
         double offset_f = (this.bot.resource_growth_delta.food /
                            this.bot.resource_delta_count) *
                           this.bot.round_time_left;
-
         double offset_mat = (this.bot.resource_growth_delta.materials /
                              this.bot.resource_delta_count) *
                             this.bot.round_time_left;
@@ -911,27 +915,21 @@ public class MyBot extends ChallengeBot {
 
     void ask_for_suggestions(TileType card) {
       Set<Group> group_set = null;
-      Set<TileRepr> repr_set = null;
 
       // do creating new groups
       if (card == TileType.Marketplace) {
-        repr_set = this.bot.state.marketplaces;
         MarketplaceRepr repr = new MarketplaceRepr(this.bot);
         repr.suggest_all();
       } else if (card == TileType.Grass) {
-        repr_set = this.bot.state.grass;
         GrassRepr repr = new GrassRepr(this.bot);
         repr.suggest_all();
       } else if (card == TileType.StoneHill) {
-        repr_set = this.bot.state.hills;
         StoneRepr repr = new StoneRepr(this.bot, card);
         repr.suggest_all();
       } else if (card == TileType.StoneMountain) {
-        repr_set = this.bot.state.mountains;
         StoneRepr repr = new StoneRepr(this.bot, card);
         repr.suggest_all();
       } else if (card == TileType.StoneRocks) {
-        repr_set = this.bot.state.rocks;
         StoneRepr repr = new StoneRepr(this.bot, card);
         repr.suggest_all();
       } else if (card == TileType.Wheat) {
@@ -943,27 +941,21 @@ public class MyBot extends ChallengeBot {
         ForestGroup grp = new ForestGroup(this.bot);
         grp.suggest_all();
       } else if (card == TileType.DoubleHouse) {
-        repr_set = this.bot.state.dhouses;
         DoubleHouseRepr repr = new DoubleHouseRepr(this.bot);
         repr.suggest_all();
       } else if (card == TileType.SmallHouse) {
-        repr_set = this.bot.state.shouses;
         SmallHouseRepr repr = new SmallHouseRepr(this.bot);
         repr.suggest_all();
       } else if (card == TileType.Windmill) {
-        repr_set = this.bot.state.windmills;
         WindmillRepr repr = new WindmillRepr(this.bot);
         repr.suggest_all();
       } else if (card == TileType.Beehive) {
-        repr_set = this.bot.state.beehives;
         BeehiveRepr repr = new BeehiveRepr(this.bot);
         repr.suggest_all();
       } else if (card == TileType.StoneQuarry) {
-        repr_set = this.bot.state.quarries;
         QuarryRepr repr = new QuarryRepr(this.bot);
         repr.suggest_all();
       } else if (card == TileType.Moai) {
-        repr_set = this.bot.state.moais;
         MoaiRepr repr = new MoaiRepr(this.bot);
         repr.suggest_all();
       }
@@ -976,15 +968,8 @@ public class MyBot extends ChallengeBot {
     }
 
     void accept_suggestion(PlacementSuggestion suggestion) {
-      if (PRINT_DEBUG) {
-        if (suggestion.info.associated_group != null)
-          System.out.println("[place] group " +
-                             suggestion.info.associated_group.getClass());
-        if (suggestion.info.associated_repr != null)
-          System.out.println("[repr] group " +
-                             suggestion.info.associated_repr.getClass());
-      }
-      System.out.println("[sdelta] " + suggestion.growth_delta.toString());
+      if (PRINT_DEBUG)
+        System.out.println("[sdelta] " + suggestion.growth_delta.toString());
 
       // i'm sorry for this atrocity...
       if (suggestion.info.associated_group != null) {
@@ -1146,15 +1131,14 @@ public class MyBot extends ChallengeBot {
 
     TileType get_preferred_tile(List<TileType> hand) {
       ResourceType needed = ResourceType.Money;
-      if (this.bot.resource_growth.money <= this.bot.resource_growth.food &&
-          this.bot.resource_growth.money <=
-              this.bot.resource_growth.materials) {
-        needed = ResourceType.Money;
-      } else if (this.bot.resource_growth.food <=
-                     this.bot.resource_growth.money &&
-                 this.bot.resource_growth.food <=
-                     this.bot.resource_growth.materials) {
+      if (this.bot.resource_growth.food <= this.bot.resource_growth.money &&
+          this.bot.resource_growth.food <= this.bot.resource_growth.materials) {
         needed = ResourceType.Food;
+      } else if (this.bot.resource_growth.money <=
+                     this.bot.resource_growth.food &&
+                 this.bot.resource_growth.money <=
+                     this.bot.resource_growth.materials) {
+        needed = ResourceType.Money;
       } else if (this.bot.resource_growth.materials <=
                      this.bot.resource_growth.money &&
                  this.bot.resource_growth.materials <=
@@ -1162,12 +1146,35 @@ public class MyBot extends ChallengeBot {
         needed = ResourceType.Materials;
       }
 
+      ArrayList<TileType> cards = new ArrayList<>();
+
       for (var card : hand) {
         if (this.bot.get_resource_type(card) == needed)
-          return card;
+          cards.add(card);
       }
 
-      return hand.iterator().next();
+      if (needed == ResourceType.Food) {
+        for (var card : cards) {
+          if (card == TileType.Windmill)
+            return card;
+          if (card == TileType.Wheat)
+            return card;
+        }
+      } else if (needed == ResourceType.Money) {
+        for (var card : cards) {
+          if (card == TileType.DoubleHouse)
+            return card;
+          if (card == TileType.Marketplace)
+            return card;
+        }
+      } else if (needed == ResourceType.Materials) {
+        for (var card : cards) {
+          if (card == TileType.StoneQuarry)
+            return card;
+        }
+      }
+
+      return (cards.isEmpty()) ? hand.iterator().next() : cards.getFirst();
     }
 
     class RuleSet {
@@ -1178,7 +1185,8 @@ public class MyBot extends ChallengeBot {
         // [rule] force wheat groups to be less than 9
         if (suggestion.info.type == TileType.Wheat) {
           if (suggestion.info.associated_group.tiles.size() >= 9) {
-            System.out.println("[rule] force wheat groups to be less than 9");
+            if (PRINT_DEBUG)
+              System.out.println("[rule] force wheat groups to be less than 9");
             return true;
           }
         }
@@ -1196,7 +1204,9 @@ public class MyBot extends ChallengeBot {
 
             if (grp.coords_placable.contains(suggestion.coord)) {
               wheat_kept_separate = true;
-              System.out.println("[rule] force wheat not to join other groups");
+              if (PRINT_DEBUG)
+                System.out.println(
+                    "[rule] force wheat not to join other groups");
               break;
             }
           }
@@ -1210,12 +1220,14 @@ public class MyBot extends ChallengeBot {
         // [rule] enforce wheat groups not to be enclosed
         boolean rule_wheat_groups_enclosed = false;
         for (var grp : this.bot.state.wheats) {
-          if (grp.coords_placable.size() == 1 && grp.tiles.size() < 9) {
+          if (grp.coords_placable.size() == 1 && grp.tiles.size() < 9 &&
+              !grp.is_on_border()) {
             if (suggestion.info.associated_group != grp) {
               if (grp.coords_placable.contains(suggestion.coord)) {
                 rule_wheat_groups_enclosed = true;
-                System.out.println(
-                    "[rule] enforce wheat groups not to be enclosed");
+                if (PRINT_DEBUG)
+                  System.out.println(
+                      "[rule] enforce wheat groups not to be enclosed");
                 break;
               }
             }
@@ -1237,8 +1249,9 @@ public class MyBot extends ChallengeBot {
                 grp.tiles.size() <= 4 && grp.addable()) {
               rule_wheat_group_minimum = true;
 
-              System.out.println(
-                  "[rule] prefer adding to wheat groups until 4 tiles");
+              if (PRINT_DEBUG)
+                System.out.println(
+                    "[rule] prefer adding to wheat groups until 4 tiles");
               break;
             }
           }
@@ -1257,8 +1270,9 @@ public class MyBot extends ChallengeBot {
               if (grp.coords_placable.iterator().next().equals(
                       suggestion.coord)) {
                 rule_forest_groups_enclosed = true;
-                System.out.println(
-                    "[rule] enforce forest groups not to be enclosed");
+                if (PRINT_DEBUG)
+                  System.out.println(
+                      "[rule] enforce forest groups not to be enclosed");
                 break;
               }
             }
@@ -1288,7 +1302,8 @@ public class MyBot extends ChallengeBot {
 
             if (windmills_per_current_wheat > 2) {
               rule_windmill_per_wheat = true;
-              System.out.println("[rule] enforce windmills per wheat");
+              if (PRINT_DEBUG)
+                System.out.println("[rule] enforce windmills per wheat");
               break;
             }
           }
@@ -1296,6 +1311,30 @@ public class MyBot extends ChallengeBot {
         if (rule_windmill_per_wheat)
           return true;
         return false;
+      }
+
+      boolean
+      apply_windmills_secluded_when_no_wheat(PlacementSuggestion suggestion) {
+        // [rule] windmill not secluded, and has no wheats
+        boolean windmill_secluded = true;
+        if (suggestion.info.type != TileType.Windmill)
+          return false;
+
+        boolean has_neighbor = false;
+        for (var cring : suggestion.coord.getArea(1)) {
+          var ct = this.bot.map.get(cring);
+          if (ct != null && !has_neighbor)
+            has_neighbor = true;
+          else if (ct != null && has_neighbor) {
+            windmill_secluded = false;
+            break;
+          }
+        }
+
+        if (windmill_secluded)
+          return false;
+
+        return true;
       }
 
       boolean apply_windmills_groupings(PlacementSuggestion suggestion) {
@@ -1312,7 +1351,8 @@ public class MyBot extends ChallengeBot {
           }
           if (windmills_closeby >= 2) {
             rule_windmill_groupings = true;
-            System.out.println("[rule] enforce windmills groupings");
+            if (PRINT_DEBUG)
+              System.out.println("[rule] enforce windmills groupings");
           }
           if (rule_windmill_groupings)
             return true;
@@ -1338,7 +1378,8 @@ public class MyBot extends ChallengeBot {
             rule_wheats_near_windmills_always = false;
 
           if (rule_wheats_near_windmills_always) {
-            System.out.println("[rule] wheats near windmills always");
+            if (PRINT_DEBUG)
+              System.out.println("[rule] wheats near windmills always");
             return true;
           }
         }
@@ -1355,7 +1396,18 @@ public class MyBot extends ChallengeBot {
             if (ct == null || ct.type != TileType.Forest)
               continue;
             rule_windmill_beside_forest = true;
-            System.out.println("[rule] windmills not beside forest");
+            if (PRINT_DEBUG)
+              System.out.println("[rule] windmills not beside forest");
+            break;
+          }
+        } else if (suggestion.info.type == TileType.Forest) {
+          for (var cneighbor : suggestion.coord.getRing(1)) {
+            var ct = this.bot.map.get(cneighbor);
+            if (ct == null || ct.type != TileType.Windmill)
+              continue;
+            rule_windmill_beside_forest = true;
+            if (PRINT_DEBUG)
+              System.out.println("[rule] forests not beside windmill");
             break;
           }
         }
@@ -1374,8 +1426,9 @@ public class MyBot extends ChallengeBot {
             for (var cneighbor : windmill.coord.getArea(2)) {
               if (suggestion.coord.equals(cneighbor)) {
                 rule_windmill_avoid_non_wheat = true;
-                System.out.println("[rule] avoid windmills when placing "
-                                   + "stuff other than wheats");
+                if (PRINT_DEBUG)
+                  System.out.println("[rule] avoid windmills when placing "
+                                     + "stuff other than wheats");
                 break;
               }
             }
@@ -1425,7 +1478,9 @@ public class MyBot extends ChallengeBot {
             if (counter > 3) {
               rule_dhouses_neighbors = true;
 
-              System.out.println("[rule] doublehouses don't have more than 3");
+              if (PRINT_DEBUG)
+                System.out.println(
+                    "[rule] doublehouses don't have more than 3");
               break;
             }
           }
@@ -1440,9 +1495,10 @@ public class MyBot extends ChallengeBot {
         boolean rule_moai_close_spaced = false;
         if (suggestion.info.type == TileType.Moai) {
           for (var moai : this.bot.state.moais) {
-            if (moai.coord.distance(suggestion.coord) <= 3) {
+            if (moai.coord.distance(suggestion.coord) <= 4) {
               rule_moai_close_spaced = true;
-              System.out.println("[rule] moais spaced");
+              if (PRINT_DEBUG)
+                System.out.println("[rule] moais spaced");
               break;
             }
           }
@@ -1463,9 +1519,12 @@ public class MyBot extends ChallengeBot {
             if (ct == null)
               continue;
 
-            if (ct.type == TileType.Wheat) {
+            if (ct.type == TileType.Wheat &&
+                !(ct.associated_group.tiles.size() <= 1 &&
+                  this.bot.state.wheats.size() <= 1)) {
               rule_stones_beside_wheat = true;
-              System.out.println("[rule] stones not beside wheat");
+              if (PRINT_DEBUG)
+                System.out.println("[rule] stones not beside wheat");
               break;
             }
           }
@@ -1485,7 +1544,8 @@ public class MyBot extends ChallengeBot {
           for (var windmill : this.bot.state.windmills) {
             if (windmill.coord.distance(suggestion.coord) <= 3) {
               rule_stones_beside_windmill = true;
-              System.out.println("[rule] stones not beside windmill");
+              if (PRINT_DEBUG)
+                System.out.println("[rule] stones not beside windmill");
               break;
             }
           }
@@ -1513,8 +1573,9 @@ public class MyBot extends ChallengeBot {
             }
           }
           if (rule_shouses_grouped) {
-            System.out.println(
-                "[rule] small houses are grouped together when possible");
+            if (PRINT_DEBUG)
+              System.out.println(
+                  "[rule] small houses are grouped together when possible");
             return true;
           }
         }
@@ -1645,16 +1706,25 @@ public class MyBot extends ChallengeBot {
       Collections.sort(this.suggestions);
 
       for (var suggestion : this.suggestions.reversed()) {
-        if (this.rules.apply_wheat_groups_less_than_9(suggestion) &&
+        boolean is_wheat_beside_windmill = false;
+        if (suggestion.info.type == TileType.Wheat) {
+          for (var windmill : this.bot.state.windmills) {
+            if (windmill.coord.distance(suggestion.coord) <= 3) {
+              is_wheat_beside_windmill = true;
+              break;
+            }
+          }
+        }
+        if (!(is_wheat_beside_windmill && this.bot.round >= 4) &&
+            this.rules.apply_wheat_groups_less_than_9(suggestion))
+          continue;
+
+        if (!is_wheat_beside_windmill &&
+            this.rules.apply_wheat_not_to_join_other_together(suggestion) &&
             this.bot.round <= 5)
           continue;
 
-        if (this.rules.apply_wheat_not_to_join_other_together(suggestion) &&
-            this.bot.round <= 5)
-          continue;
-
-        if (this.rules.apply_wheat_groups_not_enclosed(suggestion) &&
-            this.bot.round <= 5)
+        if (this.rules.apply_wheat_groups_not_enclosed(suggestion))
           continue;
 
         if (this.rules.apply_windmills_per_wheat(suggestion))
@@ -1663,10 +1733,20 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_windmills_groupings(suggestion))
           continue;
 
-        // if (this.rules.apply_wheats_near_windmills_when_possible(suggestion))
+        // if (this.rules.apply_avoid_windmills(suggestion) && this.bot.round <=
+        // 4)
+        //   continue;
+
+        // if (this.rules.apply_wheats_near_windmills_when_possible(suggestion)
+        // &&
+        //     this.bot.round >= 5)
         //   continue;
 
         if (this.rules.apply_windmills_not_beside_forest(suggestion))
+          continue;
+
+        if (this.rules.apply_beehives_not_beside_windmills(suggestion) &&
+            this.bot.round >= 6)
           continue;
 
         if (this.rules.apply_dhouse_less_than_3(suggestion))
@@ -1676,11 +1756,11 @@ public class MyBot extends ChallengeBot {
           continue;
 
         if (this.rules.apply_stones_not_beside_wheat(suggestion) &&
-            this.bot.round >= 4)
+            this.bot.round <= 3)
           continue;
 
         if (this.rules.apply_stones_not_beside_windmill(suggestion) &&
-            this.bot.round >= 6)
+            this.bot.round <= 6)
           continue;
 
         best = suggestion;
@@ -1712,13 +1792,6 @@ public class MyBot extends ChallengeBot {
    * tile and every round change */
   Set<CubeCoordinate> coords_placable = new LinkedHashSet<>();
   Set<CubeCoordinate> coords_placable_potential = new LinkedHashSet<>();
-  HashMap<CubeCoordinate, Boolean> marketplaces = new HashMap<>();
-
-  /* per hand suggestions per resource type */
-  Set<PlacementSuggestion> suggests_food = new LinkedHashSet<>();
-  Set<PlacementSuggestion> suggests_materials = new LinkedHashSet<>();
-  Set<PlacementSuggestion> suggests_money = new LinkedHashSet<>();
-  Set<PlacementSuggestion> suggests_grass = new LinkedHashSet<>(); // ugh
 
   Metrics resource_current = new Metrics();
   Metrics resource_target = new Metrics();
@@ -1847,23 +1920,23 @@ public class MyBot extends ChallengeBot {
     // - or no tiles placed, because director rejected to place them right now
     if (this.controller.actionPossible())
       this.setup_marketplaces();
-
-    // Score crnt = this.director.get_global_score();
-    // System.out.println(crnt.toString());
   }
 
   boolean place_tile(CubeCoordinate coord, TileInfo info) {
-    System.out.println("[place] want " + info.type + " on " + coord);
-    System.out.println("[place] grp " + info.associated_group +
-                       (info.associated_group != null
-                            ? " sz: " + info.associated_group.tiles.size()
-                            : ""));
-    System.out.println("[place] repr " + info.associated_repr);
+    if (PRINT_DEBUG) {
+      System.out.println("[place] want " + info.type + " on " + coord);
+      System.out.println("[place] grp " + info.associated_group +
+                         (info.associated_group != null
+                              ? " sz: " + info.associated_group.tiles.size()
+                              : ""));
+      System.out.println("[place] repr " + info.associated_repr);
+    }
 
     if (coord == null)
       return false;
-    System.out.println("[place] is_coord_usable: " +
-                       (this.world.getMap().at(coord) == null));
+    if (PRINT_DEBUG)
+      System.out.println("[place] is_coord_usable: " +
+                         (this.world.getMap().at(coord) == null));
     if (world.getMap().at(coord) != null)
       return false;
 
@@ -1874,8 +1947,9 @@ public class MyBot extends ChallengeBot {
       controller.placeTile(info.type, coord); // the heart of it all...
       this.map.put(coord, info);
     } catch (Exception e) {
-      System.out.println("SOMETHING VERY BAD HAPPENED HELP HELP: " +
-                         e.toString());
+      if (PRINT_DEBUG)
+        System.out.println("SOMETHING VERY BAD HAPPENED HELP HELP: " +
+                           e.toString());
     } finally {
       // world does not actually update when calling controller.placeTile() in
       // the same turn
@@ -1900,8 +1974,6 @@ public class MyBot extends ChallengeBot {
           this.coords_placable_potential.add(c);
       }
     }
-
-    // this.coords_placable.removeIf(t -> !world.getBuildArea().contains(t));
     return true;
   }
 
@@ -1954,7 +2026,6 @@ public class MyBot extends ChallengeBot {
     if (this.resource_current.money >= this.resource_current.food)
       return perc_food;
     double ratio = (this.resource_growth.food / this.resource_growth.money);
-    // perc_food = Math.pow(Math.E, -2.25f * ratio);
     perc_food = Math.log10(ratio * 5.0f);
     return Math.clamp(perc_food, 0.0f, 1.0f);
   }
@@ -1965,7 +2036,6 @@ public class MyBot extends ChallengeBot {
       return perc_mat;
     double ratio =
         (this.resource_growth.materials / this.resource_growth.money);
-    // perc_mat = Math.pow(Math.E, -2.25f * ratio);
     perc_mat = Math.log10(ratio * 5.0f);
     return Math.clamp(perc_mat, 0.0f, 1.0f);
   }
@@ -2018,27 +2088,6 @@ public class MyBot extends ChallengeBot {
     return coord.size();
   }
 
-  void count_empty_set(CubeCoordinate start, Set<CubeCoordinate> coords) {
-    if (this.map.get(start) == null) {
-      coords.add(start);
-    }
-
-    for (var cneighbor : start.getRing(1)) {
-      var tneighbor = this.map.get(cneighbor);
-      if (tneighbor == null) {
-        coords.add(cneighbor);
-        count_empty_set(cneighbor, coords);
-      }
-    }
-  }
-
-  int empty_count(CubeCoordinate start) {
-    Set<CubeCoordinate> coord = new LinkedHashSet<CubeCoordinate>();
-    count_empty_set(start, coord);
-
-    return coord.size();
-  }
-
   ResourceType get_resource_type(TileType type) {
     if (type == TileType.Wheat || type == TileType.Beehive ||
         type == TileType.Windmill)
@@ -2078,34 +2127,7 @@ public class MyBot extends ChallengeBot {
     this.resource_perc_materials =
         this.resource_current.materials / this.resource_target.materials;
 
-    if (this.world.getHand().isEmpty() && event_empty_hand_start) {
-
+    if (this.world.getHand().isEmpty() && event_empty_hand_start)
       this.resource_growth_last = this.resource_growth;
-    }
-
-    if (PRINT_DEBUG) {
-      System.out.println("[current] money=" + this.resource_current.money +
-                         " food=" + this.resource_current.food +
-                         " materials=" + this.resource_current.materials);
-
-      System.out.println("[target] money=" + this.resource_target.money +
-                         " food=" + this.resource_target.food +
-                         " materials=" + this.resource_target.materials);
-
-      System.out.println("[growth] money=" + this.resource_growth.money +
-                         " food=" + this.resource_growth.food +
-                         " materials=" + this.resource_growth.materials);
-
-      System.out.println(
-          "[delta] money=" + this.resource_growth_delta.money +
-          " food=" + this.resource_growth_delta.food +
-          " materials=" + this.resource_growth_delta.materials);
-
-      System.out.println(
-          "[perc] money=" + String.format("%.3f", this.resource_perc_money) +
-          " food=" + String.format("%.3f", this.resource_perc_food) +
-          " materials=" +
-          String.format("%.3f", this.resource_perc_materials));
-    }
   }
 }
