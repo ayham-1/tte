@@ -2142,7 +2142,10 @@ public class MyBot extends ChallengeBot {
     if (this.resource_current.money >= this.resource_current.food)
       return perc_food;
     double ratio = (this.resource_growth.food / this.resource_growth.money);
-    perc_food = Math.log10(ratio * 5.0f);
+    // perc_food = Math.log10(ratio * 5.0f);
+
+    perc_food = (this.resource_current.food - this.resource_current.money) /
+                this.resource_current.food;
     return Math.clamp(perc_food, 0.0f, 1.0f);
   }
 
@@ -2162,8 +2165,8 @@ public class MyBot extends ChallengeBot {
     for (var repr : this.state.marketplaces) {
       MarketplaceRepr market = (MarketplaceRepr)repr;
       if (market.configured == false) {
-        // double perc_food = this.market_get_food_rate();
-        double perc_food = 0.0f; // this shit ain't balanced
+        double perc_food = this.market_get_food_rate();
+        // double perc_food = 0.0f; // this shit ain't balanced
         double perc_mat = this.market_get_materials_rate();
 
         this.controller.configureMarket(market.coord, perc_food, perc_mat);
