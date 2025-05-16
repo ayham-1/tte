@@ -39,7 +39,7 @@
  * neighbors
  *  - [x] cap wheat group growth so that more windmills have more wheats
  *  - [-] allow space beside wheat groups for windmills
- *  - [ ] force windmills so that they stack but not in range of wheats
+ *  - [ ] make sure wheats are not enclosed using empty tiles counting
  *
  * Current:
  *
@@ -136,6 +136,8 @@ public class MyBot extends ChallengeBot {
     TileType type;
     Group associated_group;
     TileRepr associated_repr;
+
+    int windmills = 0;
 
     TileInfo(TileType t, Group grp) {
       this.type = t;
@@ -1028,6 +1030,17 @@ public class MyBot extends ChallengeBot {
       if (suggestion.info.associated_repr != null)
         suggestion.info.associated_repr.set_coord(suggestion.coord);
 
+      // windmill needs to update local tile infos
+      if (suggestion.info.type == TileType.Windmill) {
+        for (var carea : suggestion.coord.getArea(3)) {
+          var ct = this.bot.map.get(carea);
+          if (ct == null)
+            continue;
+          if (ct.type == TileType.Wheat)
+            ct.windmills++;
+        }
+      }
+
       this.bot.place_tile(suggestion.coord, suggestion.info);
     }
 
@@ -1211,6 +1224,87 @@ public class MyBot extends ChallengeBot {
         return false;
       }
 
+      boolean apply_wheat_neighbors(PlacementSuggestion suggestion) {
+        // [rule] force wheats to atleast have 2 neighbors
+        if (suggestion.info.type != TileType.Wheat)
+          return false;
+        if (!this.bot.state.wheats.contains(suggestion.info.associated_group))
+          return false;
+        if (suggestion.info.associated_group.tiles.size() < 2)
+          return false;
+
+        // ensure it is possible to have two neighbors atleast
+        boolean has_together = false;
+        for (var cplacable1 :
+             suggestion.info.associated_group.coords_placable) {
+          for (var cplacable2 :
+               suggestion.info.associated_group.coords_placable) {
+            if (cplacable2.equals(cplacable1))
+              continue;
+
+            if (cplacable1.distance(cplacable2) <= 2) {
+              has_together = true;
+              break;
+            }
+          }
+          if (has_together)
+            break;
+        }
+
+        if (!has_together)
+          return false;
+
+        int wheat_neighbors = 0;
+        for (var cring : suggestion.coord.getRing(1)) {
+          var ct = this.bot.map.get(cring);
+          if (ct != null && ct.type == TileType.Wheat)
+            wheat_neighbors++;
+        }
+
+        if (wheat_neighbors < 2) {
+          if (PRINT_DEBUG)
+            System.out.println("[rule] wheats to atleast have 2 neighbors");
+          return true;
+        }
+        return false;
+      }
+
+      boolean apply_avoid_wheats_if_windmills_not_present(
+          PlacementSuggestion suggestion) {
+        // [rule] avoid wheats if not covered by windmill
+        if (suggestion.info.type == TileType.Windmill ||
+            suggestion.info.type == TileType.Wheat)
+          return false;
+
+        for (var cring : suggestion.coord.getRing(1)) {
+          var ct = this.bot.map.get(cring);
+          if (ct == null)
+            continue;
+
+          if (ct.type == TileType.Wheat) {
+            // check if this wheat tile is being enclosed
+            boolean enclosed = true;
+            for (var cneighbor : cring.getRing(1)) {
+              if (cneighbor.equals(suggestion.coord))
+                continue;
+              if (this.bot.map.get(cneighbor) == null) {
+                enclosed = false;
+                break;
+              }
+            }
+
+            if (enclosed && ct.windmills < 2) {
+              if (PRINT_DEBUG)
+                System.out.println(
+                    "[rule] avoid wheats if not covered by windmill");
+              return true;
+            }
+          }
+        }
+
+        return false;
+      }
+
       boolean apply_new_wheat_group_secluded(PlacementSuggestion suggestion) {
         // [rule] force new wheat group secluded
 
@@ -1270,7 +1364,8 @@ public class MyBot extends ChallengeBot {
       boolean apply_wheat_groups_not_enclosed(PlacementSuggestion suggestion) {
         // [rule] enforce wheat groups not to be enclosed
 
-        if (suggestion.info.type != TileType.Windmill)
+        if (suggestion.info.type == TileType.Windmill ||
+            suggestion.info.type == TileType.Wheat)
           return false;
 
         boolean rule_wheat_groups_enclosed = false;
@@ -1452,20 +1547,22 @@ public class MyBot extends ChallengeBot {
 
       boolean apply_windmills_groupings(PlacementSuggestion suggestion) {
         // [rule] enforce windmills groupings
-        boolean rule_windmill_groupings = false;
         if (suggestion.info.type == TileType.Windmill) {
-          int windmills_closeby = 0;
-          for (var other : this.bot.state.windmills) {
-            if (other.coord.distance(suggestion.coord) <= 3)
-              windmills_closeby++;
+          for (var windmill : this.bot.state.windmills) {
+            int windmills_closeby = 0;
+            for (var other : this.bot.state.windmills) {
+              if (windmill == other)
+                continue;
+              if (other.coord.distance(windmill.coord) <= 3 ||
+                  other.coord.distance(suggestion.coord) <= 3)
+                windmills_closeby++;
+            }
+            if (windmills_closeby > 1) {
+              if (PRINT_DEBUG)
+                System.out.println("[rule] enforce windmills groupings");
+              return true;
+            }
           }
-          if (windmills_closeby > 2) {
-            rule_windmill_groupings = true;
-            if (PRINT_DEBUG)
-              System.out.println("[rule] enforce windmills groupings");
-          }
-          if (rule_windmill_groupings)
-            return true;
         }
         return false;
       }
@@ -1533,7 +1630,7 @@ public class MyBot extends ChallengeBot {
             suggestion.info.type != TileType.Wheat &&
             suggestion.info.type != TileType.Beehive) {
           for (var windmill : this.bot.state.windmills) {
-            for (var cneighbor : windmill.coord.getArea(3)) {
+            for (var cneighbor : windmill.coord.getArea(2)) {
               if (suggestion.coord.equals(cneighbor)) {
                 rule_windmill_avoid_non_wheat = true;
                 if (PRINT_DEBUG)
@@ -1836,6 +1933,12 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_wheat_groups_size(suggestion, 0, 9))
           continue;
 
+        if (this.rules.apply_wheat_neighbors(suggestion))
+          continue;
+
+        if (this.rules.apply_avoid_wheats_if_windmills_not_present(suggestion))
+          continue;
+
         // if (this.rules.apply_windmill_must_have_wheat(suggestion) &&
         //     this.bot.round >= 1)
         //   continue;
@@ -1864,7 +1967,7 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_windmills_groupings(suggestion))
           continue;
 
-        if (this.rules.apply_avoid_windmills(suggestion) && this.bot.round <= 4)
+        if (this.rules.apply_avoid_windmills(suggestion) && this.bot.round <= 6)
           continue;
 
         // if (this.rules.apply_wheats_near_windmills_when_possible(suggestion))
@@ -1883,12 +1986,12 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_moais_spaced(suggestion))
           continue;
 
-        if (this.rules.apply_stones_not_beside_wheat(suggestion) /*&&
-            this.bot.round <= 3*/)
-          continue;
+        // if (this.rules.apply_stones_not_beside_wheat(suggestion) /*&&
+        //     this.bot.round <= 3*/)
+        //   continue;
 
-        if (this.rules.apply_stones_not_beside_windmill(
-                suggestion) /*&& this.bot.round <= 6*/)
+        if (this.rules.apply_stones_not_beside_windmill(suggestion) &&
+            this.bot.round <= 6)
           continue;
 
         best = suggestion;
