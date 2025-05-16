@@ -1,0 +1,495 @@
+Run 1:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2504014082788508070\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":39544.12,\"materials\":76554.516,\"money\":59045.586},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 2:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13455977566481714798\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":39409.633,\"materials\":78087.41,\"money\":61605.055},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 3:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5478233511279705350\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":72211.97,\"materials\":103424.164,\"money\":80699.57},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 4:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"4282407785082148660\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":96396.08,\"materials\":112945.445,\"money\":114126.195},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 5:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"11331219910327583408\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":50639.785,\"materials\":98047.47,\"money\":91211.695},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 6:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"1361663625786281818\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":37006.203,\"materials\":69199.09,\"money\":66913.35},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 7:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"251606114401450262\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":54259.227,\"materials\":91062.89,\"money\":83946.32},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 8:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14355921149826926880\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":71989.84,\"materials\":110910.73,\"money\":93014.63},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 9:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2850012302020584052\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":34828.027,\"materials\":45416.723,\"money\":44144.215},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 10:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14734995160046848401\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":69654.49,\"materials\":108706.15,\"money\":77973.11},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 11:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"18247754217465419714\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":41057.89,\"materials\":78513.59,\"money\":67121.96},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 12:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"8280166559354738554\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":52287.41,\"materials\":100857.52,\"money\":78614.67},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 13:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5971629109215003513\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":38909.53,\"materials\":71222.47,\"money\":55115.066},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 14:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"10543298141220066813\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":54359.715,\"materials\":80381.68,\"money\":62439.992},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 15:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"4203865165362348240\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":36334.938,\"materials\":75225.87,\"money\":46287.44},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 16:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14424700968110873889\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":70906.45,\"materials\":102707.66,\"money\":80516.39},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 17:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7031355825956511036\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":72398.49,\"materials\":93561.93,\"money\":92368.9},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 18:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"18409293465627481347\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":55698.04,\"materials\":88249.68,\"money\":69954.75},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 19:
+"{\"gamemode\":\"Challenge\",\"round\":1,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"15640543818025227814\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":270.51923,\"materials\":871.6489,\"money\":886.9543},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 20:
+"{\"gamemode\":\"Challenge\",\"round\":1,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13660344609865887589\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":242.15875,\"materials\":806.1925,\"money\":1234.853},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 21:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13968739372208936882\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":72612.35,\"materials\":136898.9,\"money\":79710.05},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 22:
+"{\"gamemode\":\"Challenge\",\"round\":7,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6994319818276750606\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":28270.709,\"materials\":36090.055,\"money\":30313.898},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 23:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3338429346321122115\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":41836.625,\"materials\":64723.78,\"money\":62343.08},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 24:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7669094391835437057\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":38946.63,\"materials\":81392.38,\"money\":53887.74},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 25:
+"{\"gamemode\":\"Challenge\",\"round\":7,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3458797279338847256\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":36219.062,\"materials\":44058.957,\"money\":28918.092},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 26:
+"{\"gamemode\":\"Challenge\",\"round\":1,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3361433731350476381\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":393.4172,\"materials\":1481.249,\"money\":2182.4546},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 27:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13276302567025397789\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":39108.918,\"materials\":67837.04,\"money\":66152.76},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 28:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"16359294714916010915\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":67804.45,\"materials\":92132.87,\"money\":94163.72},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 29:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"1183665935042730031\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":54744.145,\"materials\":75427.57,\"money\":63350.71},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 30:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"1657312721354073176\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":70872.7,\"materials\":115029.96,\"money\":111590.47},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 31:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"10891663217442059120\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":52961.82,\"materials\":86241.82,\"money\":79435.74},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 32:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"155960489920175596\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":39253.305,\"materials\":59490.07,\"money\":50912.277},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 33:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13531930138777015823\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":39214.86,\"materials\":77845.32,\"money\":51608.895},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 34:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"12602214249404416847\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":69109.29,\"materials\":89209.09,\"money\":82025.45},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 35:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"8859823053187762585\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":88651.96,\"materials\":126733.24,\"money\":114446.414},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 36:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"11104348404708014761\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":90173.125,\"materials\":133260.97,\"money\":120418.625},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 37:
+"{\"gamemode\":\"Challenge\",\"round\":1,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"12563381880525350153\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":455.85077,\"materials\":1924.972,\"money\":1709.779},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 38:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"11276286523892375711\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":37177.477,\"materials\":79623.34,\"money\":65106.004},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 39:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3184398641796451591\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":68641.23,\"materials\":95184.18,\"money\":90018.766},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 40:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13129253113552579887\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":40617.48,\"materials\":74266.695,\"money\":66244.32},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 41:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"9479061157742916300\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":88692.57,\"materials\":123310.68,\"money\":119007.53},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 42:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7657994281973400187\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":97379.125,\"materials\":129560.17,\"money\":95818.26},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 43:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6417591628413199902\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":52669.21,\"materials\":90870.195,\"money\":82263.164},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 44:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"4497819013135051689\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":52516.95,\"materials\":89675.95,\"money\":75096.766},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 45:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"11419195580880432528\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":92253.77,\"materials\":126662.2,\"money\":96139.19},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 46:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13386093525879982099\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":53337.91,\"materials\":77366.58,\"money\":67985.27},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 47:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"373995562082350905\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":55833.56,\"materials\":97132.91,\"money\":77765.94},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 48:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"15412399281067579715\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":54714.18,\"materials\":74172.58,\"money\":67482.72},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 49:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"8605518961417165958\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":52482.55,\"materials\":58947.41,\"money\":56592.92},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 50:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3235036418916729320\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":51311.496,\"materials\":74763.695,\"money\":65504.613},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 51:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2831138855771940768\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":90322.69,\"materials\":129411.22,\"money\":108140.07},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 52:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"16898866998953708443\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":55235.246,\"materials\":82528.35,\"money\":78283.26},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 53:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"11101265353232037684\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":72816.79,\"materials\":120999.86,\"money\":100464.57},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 54:
+"{\"gamemode\":\"Challenge\",\"round\":5,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"11052758898587470604\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":11578.574,\"materials\":34144.61,\"money\":21949.135},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 55:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6937892862919485910\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":51446.61,\"materials\":71451.42,\"money\":65676.805},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 56:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"1821309614818133689\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":73438.9,\"materials\":109529.02,\"money\":104629.734},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 57:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"9904386509540611404\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":66584.09,\"materials\":100184.46,\"money\":81524.83},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 58:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"16312788604156437922\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":55245.574,\"materials\":102590.984,\"money\":81771.164},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 59:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14337235596746051676\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":39011.7,\"materials\":66473.5,\"money\":55984.836},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 60:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14036370348565167252\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":53387.617,\"materials\":86828.41,\"money\":68557.95},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 61:
+"{\"gamemode\":\"Challenge\",\"round\":6,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"11457078296159395722\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":18000.746,\"materials\":28092.354,\"money\":23199.875},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 62:
+"{\"gamemode\":\"Challenge\",\"round\":1,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"16276126063708648681\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":703.6385,\"materials\":80.0,\"money\":60.0},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 63:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6173078512802412045\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":51550.867,\"materials\":100977.71,\"money\":96943.71},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 64:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"4856835709692841551\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":55799.293,\"materials\":78406.22,\"money\":63964.92},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 65:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"15532048359842966023\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":37146.145,\"materials\":63328.582,\"money\":59840.17},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 66:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7789927195003482999\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":39253.074,\"materials\":72975.195,\"money\":57893.875},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 67:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"17547081436041466934\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":52189.438,\"materials\":83335.26,\"money\":69099.28},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 68:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13710028758590586390\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":73325.445,\"materials\":91420.1,\"money\":77055.14},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 69:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"4005099423379393544\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":49662.832,\"materials\":72381.445,\"money\":57472.54},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 70:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7254531134586831875\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":71526.86,\"materials\":111987.086,\"money\":95749.76},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 71:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"17129834869502556403\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":38650.742,\"materials\":71955.195,\"money\":60270.473},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 72:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5845150229920302322\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":55486.082,\"materials\":70198.055,\"money\":62313.516},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 73:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"18056554221499354719\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":53754.133,\"materials\":76424.61,\"money\":78956.42},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 74:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7791888430164732007\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":54608.32,\"materials\":90452.36,\"money\":93309.305},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 75:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"905976077850041940\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":52642.7,\"materials\":109877.516,\"money\":73259.07},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 76:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"12531735702129092905\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":71370.914,\"materials\":116789.53,\"money\":97611.14},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 77:
+"{\"gamemode\":\"Challenge\",\"round\":5,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14667895915664116956\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":12012.791,\"materials\":49093.18,\"money\":21095.941},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 78:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5858435645589770025\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":66314.74,\"materials\":89457.0,\"money\":79736.51},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 79:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"8609824036647348818\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":72758.3,\"materials\":97303.05,\"money\":88499.95},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 80:
+"{\"gamemode\":\"Challenge\",\"round\":7,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"4782590984274911064\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":27477.07,\"materials\":65732.78,\"money\":37437.39},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 81:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13047988102449123407\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":55370.55,\"materials\":79502.87,\"money\":77228.17},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 82:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"9936331012554588937\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":72247.664,\"materials\":92100.73,\"money\":78669.36},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 83:
+"{\"gamemode\":\"Challenge\",\"round\":6,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6456685837498295311\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":16088.937,\"materials\":40290.176,\"money\":27479.006},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 84:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"16152972695141059764\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":71735.06,\"materials\":94002.586,\"money\":84891.484},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 85:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2346040183704088065\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":51215.098,\"materials\":73526.72,\"money\":65083.668},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 86:
+"{\"gamemode\":\"Challenge\",\"round\":5,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6343983820638720381\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":10794.489,\"materials\":32921.1,\"money\":15874.014},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 87:
+"{\"gamemode\":\"Challenge\",\"round\":1,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"10091492293673418129\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":185.64429,\"materials\":60.0,\"money\":100.0},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 88:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"12732792375829540469\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":38645.93,\"materials\":63053.22,\"money\":54415.03},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 89:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"1105530168977190286\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":71805.01,\"materials\":100240.96,\"money\":86895.414},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 90:
+"{\"gamemode\":\"Challenge\",\"round\":7,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7774485651686283108\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":28429.322,\"materials\":58748.797,\"money\":44544.96},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 91:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"9441037228621040257\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":39525.223,\"materials\":71939.32,\"money\":53867.89},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 92:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"8193492721584863995\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":41551.62,\"materials\":69896.42,\"money\":53244.97},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 93:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"18060884466879813825\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":76765.82,\"materials\":104000.4,\"money\":75327.82},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 94:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5163367261031749228\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":40232.11,\"materials\":81723.086,\"money\":64967.137},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 95:
+"{\"gamemode\":\"Challenge\",\"round\":5,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3096051294656868232\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":12577.897,\"materials\":20223.957,\"money\":15328.48},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 96:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"15179671532079338563\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":52029.82,\"materials\":76311.195,\"money\":66240.6},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 97:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"17637355965126816762\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":53623.477,\"materials\":85727.31,\"money\":81380.914},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 98:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13270264293304844288\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":69306.21,\"materials\":94140.57,\"money\":89162.88},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 99:
+"{\"gamemode\":\"Challenge\",\"round\":1,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2402923298017383790\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":442.7891,\"materials\":991.558,\"money\":1708.368},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 100:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5963591255501465069\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":39145.45,\"materials\":78644.26,\"money\":67277.836},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 101:
+"{\"gamemode\":\"Challenge\",\"round\":7,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"4796357547506594587\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":26604.066,\"materials\":64134.266,\"money\":42616.195},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 102:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"8170073423122766866\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":54119.15,\"materials\":90495.24,\"money\":74491.95},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 103:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2110683417657270232\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":72236.695,\"materials\":97323.43,\"money\":75577.44},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 104:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7524270236721709236\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":38244.75,\"materials\":86115.34,\"money\":83149.664},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 105:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"8067620806105062611\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":44124.926,\"materials\":64407.836,\"money\":41914.34},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 106:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14202513833095183654\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":50303.645,\"materials\":71120.43,\"money\":68934.695},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 107:
+"{\"gamemode\":\"Challenge\",\"round\":7,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13893378200258649062\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":28051.535,\"materials\":39854.664,\"money\":34563.42},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 108:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5829542312732458018\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":95059.84,\"materials\":136108.31,\"money\":110880.07},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 109:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2664206390622158682\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":73530.84,\"materials\":113892.49,\"money\":84227.82},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 110:
+"{\"gamemode\":\"Challenge\",\"round\":4,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3220108757356724541\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":15440.923,\"materials\":7031.479,\"money\":11356.002},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 111:
+"{\"gamemode\":\"Challenge\",\"round\":6,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13005745629917802342\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":19003.582,\"materials\":59919.656,\"money\":38667.195},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 112:
+"{\"gamemode\":\"Challenge\",\"round\":6,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14153467900649168417\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":18935.42,\"materials\":51432.125,\"money\":30631.988},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 113:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14234521484795205788\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":89009.12,\"materials\":132577.27,\"money\":109863.32},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 114:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2777185973485010243\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":38580.844,\"materials\":65248.74,\"money\":52890.43},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 115:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5112834031702638742\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":89184.09,\"materials\":123012.51,\"money\":95997.87},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 116:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"18323512713318023670\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":64722.03,\"materials\":145301.06,\"money\":110261.43},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 117:
+"{\"gamemode\":\"Challenge\",\"round\":6,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6063047059193708380\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":16826.38,\"materials\":42047.22,\"money\":38679.605},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 118:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3824338779987252280\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":54914.566,\"materials\":87654.83,\"money\":72709.46},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 119:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7114531494378398117\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":40611.855,\"materials\":67717.89,\"money\":63633.867},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 120:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2843612564263200453\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":71432.83,\"materials\":99326.664,\"money\":90543.59},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 121:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"1668764902829338115\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":38828.15,\"materials\":83887.586,\"money\":60198.535},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 122:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"11895468884339323966\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":53841.168,\"materials\":105772.68,\"money\":85468.62},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 123:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7249485284069882985\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":55880.953,\"materials\":91000.95,\"money\":72777.36},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 124:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"740012085255110212\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":52415.117,\"materials\":90753.39,\"money\":83423.13},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 125:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"15544794088519796042\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":72483.336,\"materials\":108684.734,\"money\":91095.766},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 126:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6029761034944501820\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":54299.234,\"materials\":83369.914,\"money\":77922.77},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 127:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"8390918008246530897\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":71298.86,\"materials\":95723.33,\"money\":80890.77},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 128:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14951361099471027741\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":37099.55,\"materials\":88052.01,\"money\":41311.54},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 129:
+"{\"gamemode\":\"Challenge\",\"round\":1,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"16825612497103080390\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":218.69661,\"materials\":1131.8837,\"money\":1722.8909},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 130:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"9060854237598237353\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":74984.73,\"materials\":83941.46,\"money\":82749.25},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 131:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5179020924112731050\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":69464.87,\"materials\":94157.805,\"money\":83771.53},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 132:
+"{\"gamemode\":\"Challenge\",\"round\":7,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6047758831722100699\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":27805.355,\"materials\":65823.22,\"money\":48091.03},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 133:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"13209322335563710725\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":71704.63,\"materials\":102536.51,\"money\":91316.164},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 134:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"8470343898542119783\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":56336.113,\"materials\":92421.1,\"money\":82147.68},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 135:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2504076977780129730\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":37730.137,\"materials\":84567.484,\"money\":77537.69},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 136:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"10928363661473519960\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":40767.42,\"materials\":74134.06,\"money\":56822.46},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 137:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"6634878656143314169\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":36509.133,\"materials\":57737.973,\"money\":46107.86},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 138:
+"{\"gamemode\":\"Challenge\",\"round\":7,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"4262860878981806728\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":26198.754,\"materials\":58320.934,\"money\":45373.09},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 139:
+"{\"gamemode\":\"Challenge\",\"round\":11,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14223849396913405561\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":94869.23,\"materials\":111889.51,\"money\":100472.9},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 140:
+"{\"gamemode\":\"Challenge\",\"round\":6,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"1083365619683309676\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":30417.027,\"materials\":38474.65,\"money\":18999.531},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 141:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"7108744516402577385\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":73672.62,\"materials\":92373.77,\"money\":74948.95},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 142:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2739531634993440714\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":54424.703,\"materials\":84294.98,\"money\":74639.39},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 143:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3827002771795001484\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":37041.99,\"materials\":88670.47,\"money\":76239.09},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 144:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"2201963260146282443\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":67137.85,\"materials\":77218.69,\"money\":74374.375},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 145:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"3896422414012555741\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":49823.805,\"materials\":85104.23,\"money\":68832.195},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 146:
+"{\"gamemode\":\"Challenge\",\"round\":9,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"16808186867551962299\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":57125.902,\"materials\":76790.54,\"money\":68236.305},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 147:
+"{\"gamemode\":\"Challenge\",\"round\":5,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"14389728147839103553\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":11273.386,\"materials\":17621.426,\"money\":15176.577},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 148:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"5135011507840506893\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":38859.46,\"materials\":61388.03,\"money\":48663.992},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 149:
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"9970174870687249689\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":38846.18,\"materials\":70508.02,\"money\":70586.08},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Run 150:
+"{\"gamemode\":\"Challenge\",\"round\":10,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"11226454378497078983\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":70256.32,\"materials\":105501.445,\"money\":103422.12},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+
+Average round value over 150 runs: 8.33
+Average food value over 150 runs: 49894.89
+Average materials value over 150 runs: 78980.64
+Average moneys value over 150 runs: 66298.44
+
+Standard deviation of rounds over 150 runs: 2.242
+Standard deviation of food over 150 runs: 22869.376
+Standard deviation of materials over 150 runs: 30840.050
+Standard deviation of moneys over 150 runs: 27603.551
+
+Rounds Histogram: 
+ 1 | ████████ (8)
+ 4 | █ (1)
+ 5 | █████ (5)
+ 6 | ██████ (6)
+ 7 | ████████ (8)
+ 8 | ███████████████████████████████████ (35)
+ 9 | █████████████████████████████████████████ (41)
+10 | ███████████████████████████████████ (35)
+11 | ███████████ (11)
+Calculating known seeds
+Running seed AuD
+"{\"gamemode\":\"Challenge\",\"round\":7,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"AuD\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":27273.271,\"materials\":68764.81,\"money\":56049.613},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+Running seed TTE
+"{\"gamemode\":\"Challenge\",\"round\":8,\"record\":null,\"campaign\":null,\"challenge\":{\"seed\":\"TTE\",\"difficulty\":\"Medium\"},\"metrics\":{\"food\":37494.312,\"materials\":72327.14,\"money\":60043.895},\"warnings\":{\"place\":0,\"take\":0,\"reward\":0,\"redraw\":0,\"market\":0},\"success\":true}"
+Average round value over 152 runs: 8.32
+Average food value over 152 runs: 49664.48
+Average materials value over 152 runs: 78869.66
+Average moneys value over 152 runs: 66189.86
+
+Standard deviation of rounds over 152 runs: 2.230
+Standard deviation of food over 152 runs: 22813.045
+Standard deviation of materials over 152 runs: 30650.989
+Standard deviation of moneys over 152 runs: 27437.323
+
+Rounds Histogram: 
+ 1 | ████████ (8)
+ 4 | █ (1)
+ 5 | █████ (5)
+ 6 | ██████ (6)
+ 7 | █████████ (9)
+ 8 | ████████████████████████████████████ (36)
+ 9 | █████████████████████████████████████████ (41)
+10 | ███████████████████████████████████ (35)
+11 | ███████████ (11)

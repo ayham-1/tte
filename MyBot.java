@@ -865,6 +865,18 @@ public class MyBot extends ChallengeBot {
       this.suggestions.add(suggestion);
     }
 
+    boolean do_wealth_redraw() {
+      var cost = this.bot.world.getRedrawCosts();
+      if (this.bot.resource_current.money >
+          this.bot.resource_target.money + cost.money)
+        if (this.bot.resource_current.food >
+            this.bot.resource_target.food + cost.food)
+          if (this.bot.resource_current.materials >
+              this.bot.resource_target.materials + cost.materials)
+            return true;
+      return false;
+    }
+
     int redraw_max_times(double grad, double mult, double offset) {
       return (int)Math.floor(
           Math.pow(Math.E, -((grad * this.bot.round * mult) + offset)));
@@ -880,6 +892,11 @@ public class MyBot extends ChallengeBot {
       int times_allowed = this.redraw_max_times();
       if (redrawable && times_allowed >= this.redraw_counter &&
           this.bot.world.getHand().isEmpty()) {
+        double early_bias = (Math.pow(
+            Math.E, -(grad * (double)this.bot.round +
+                      (this.bot.world.getRoundTime() / 60.0f) + e_off)));
+        double discount_bias = 1.0f - early_bias;
+
         double money =
             this.bot.resource_current.money +
             this.bot.resource_growth.money * this.bot.round_time_left;
@@ -899,17 +916,12 @@ public class MyBot extends ChallengeBot {
                              this.bot.resource_delta_count) *
                             this.bot.round_time_left;
 
-        double early_bias =
-            1 - (Math.pow(Math.E,
-                          -(grad * (double)this.bot.round +
-                            (this.bot.world.getRoundTime() / 60.0f) + e_off)));
-
         if ((money - cost.money) + offset_m >
-                this.bot.resource_target.money * early_bias &&
+                this.bot.resource_target.money * discount_bias &&
             (food - cost.food) + offset_f >
-                this.bot.resource_target.food * early_bias &&
+                this.bot.resource_target.food * discount_bias &&
             (mat - cost.materials) + offset_mat >
-                this.bot.resource_target.materials * early_bias) {
+                this.bot.resource_target.materials * discount_bias) {
           this.redraw_counter++;
           return true;
         }
@@ -1263,7 +1275,7 @@ public class MyBot extends ChallengeBot {
 
         boolean rule_wheat_groups_enclosed = false;
         for (var grp : this.bot.state.wheats) {
-          if (grp.coords_placable.size() == 2 && grp.tiles.size() <= 9 &&
+          if (grp.coords_placable.size() == 1 && grp.tiles.size() < 9 &&
               !grp.is_on_border()) {
             if (suggestion.info.associated_group != grp) {
               if (grp.coords_placable.contains(suggestion.coord)) {
@@ -1698,7 +1710,7 @@ public class MyBot extends ChallengeBot {
 
     @Override
     int redraw_max_times() {
-      return this.redraw_max_times(0.15f, 5.0f, 0.05f);
+      return this.redraw_max_times(0.11f, 5.0f, 0.05f);
     }
 
     @Override
@@ -1734,7 +1746,7 @@ public class MyBot extends ChallengeBot {
       Collections.sort(this.suggestions);
 
       for (var suggestion : this.suggestions.reversed()) {
-        if (this.rules.apply_wheat_groups_size(suggestion, 1, 9))
+        if (this.rules.apply_wheat_groups_size(suggestion, 0, 9))
           continue;
 
         if (this.rules.apply_wheat_not_to_join_other_together(suggestion))
@@ -1789,7 +1801,7 @@ public class MyBot extends ChallengeBot {
 
     @Override
     int redraw_max_times() {
-      return this.redraw_max_times(0.16f, 6.0f, 0.00f);
+      return this.redraw_max_times(0.1f, 6.0f, 0.00f);
     }
 
     @Override
@@ -1824,9 +1836,9 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_wheat_groups_size(suggestion, 0, 9))
           continue;
 
-        if (this.rules.apply_windmill_must_have_wheat(suggestion) &&
-            this.bot.round >= 7)
-          continue;
+        // if (this.rules.apply_windmill_must_have_wheat(suggestion) &&
+        //     this.bot.round >= 1)
+        //   continue;
 
         // if (/*!(is_wheat_beside_windmill && this.bot.round >= 4) &&*/
         // if (this.bot.round >= 5 &&
@@ -1855,14 +1867,14 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_avoid_windmills(suggestion) && this.bot.round <= 4)
           continue;
 
-        if (this.rules.apply_wheats_near_windmills_when_possible(suggestion))
-          continue;
+        // if (this.rules.apply_wheats_near_windmills_when_possible(suggestion))
+        //   continue;
 
         if (this.rules.apply_windmills_not_beside_forest(suggestion))
           continue;
 
         if (this.rules.apply_beehives_not_beside_windmills(suggestion) &&
-            this.bot.round >= 7)
+            this.bot.round >= 4)
           continue;
 
         if (this.rules.apply_dhouse_less_than_3(suggestion))
@@ -2001,8 +2013,15 @@ public class MyBot extends ChallengeBot {
     if (!this.controller.actionPossible())
       return;
 
-    // redraw when we are winning!!1
-    if (this.director.do_redraw())
+    // redraw when we are winning
+    if (this.director.do_wealth_redraw())
+      this.controller.redraw();
+
+    if (!this.controller.actionPossible())
+      return;
+
+    // redraw when we are projected to be winning
+    if (this.round < 5 && this.director.do_redraw())
       this.controller.redraw();
 
     if (!this.controller.actionPossible())
