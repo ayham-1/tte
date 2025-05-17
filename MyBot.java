@@ -50,7 +50,11 @@
  *
  * TODOs:
  *
+ * LEARN FROM:
+ *  - 16450047910414762407
+ *
  * PROBLEMATIC SEEDS:
+ *
  * Bob II:
  *  - 4544524656413520667
  *  - 15232417153697053033
@@ -381,8 +385,8 @@ public class MyBot extends ChallengeBot {
       for (var cplacable : this.coords_placable)
         this.bot.empty_count_set(cplacable, coords, needed);
 
-      if (!coords.contains(coord) && !this.coords_placable.contains(coord))
-        return false;
+      // if (!coords.contains(coord) && !this.coords_placable.contains(coord))
+      //   return false;
 
       total_count = coords.size();
       if (total_count < needed) {
@@ -391,6 +395,7 @@ public class MyBot extends ChallengeBot {
           this.coords_placable.add(coord);
         return true;
       }
+      // System.out.println("total_count" + total_count);
 
       this.bot.map.remove(coord);
       if (was_in_cplacable)
@@ -1466,17 +1471,17 @@ public class MyBot extends ChallengeBot {
         }
 
         for (var wheat : this.bot.state.wheats) {
-          int min_windmills = Integer.MAX_VALUE;
-          for (var tiles : wheat.tiles.keySet()) {
-            var ct = this.bot.map.get(tiles);
-            if (ct == null)
-              continue;
-            min_windmills = Math.min(min_windmills, ct.windmills);
-          }
+          // int min_windmills = Integer.MAX_VALUE;
+          // for (var tiles : wheat.tiles.keySet()) {
+          //   var ct = this.bot.map.get(tiles);
+          //   if (ct == null)
+          //     continue;
+          //   min_windmills = Math.min(min_windmills, ct.windmills);
+          // }
 
-          int groupsz = 11 - min_windmills -
-                        (suggestion.info.type == TileType.Windmill ? 1 : 0);
-          if (wheat.does_block(suggestion.coord, groupsz)) {
+          // int groupsz = 11 - min_windmills -
+          //               (suggestion.info.type == TileType.Windmill ? 1 : 0);
+          if (wheat.does_block(suggestion.coord, 9 - wheat.tiles.size())) {
             if (PRINT_DEBUG)
               System.out.println("[rule] don't block wheats");
             return true;
@@ -1485,8 +1490,8 @@ public class MyBot extends ChallengeBot {
 
         if (suggestion.info.type == TileType.Wheat &&
             !this.bot.state.wheats.contains(suggestion.info.associated_group)) {
-          int count = this.bot.empty_count(suggestion.coord, 11);
-          if (count < 11) {
+          int count = this.bot.empty_count(suggestion.coord, 9);
+          if (count < 9) {
             if (PRINT_DEBUG)
               System.out.println("[rule] wheats don't block wheats");
             return true;
@@ -2099,7 +2104,7 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_wheat_groups_size(suggestion, 0, 9))
           continue;
 
-        if (this.rules.apply_forest_groups_size(suggestion, 0, 6))
+        if (this.rules.apply_forest_groups_size(suggestion, 0, 7))
           continue;
 
         if (this.bot.round > 0 && this.rules.apply_avoid_forest(suggestion))
@@ -2159,7 +2164,7 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_moais_spaced(suggestion))
           continue;
 
-        if (this.bot.round >= 1 && this.bot.round <= 6 &&
+        if (this.bot.round >= 1 && this.bot.round <= 9 &&
             this.rules.apply_stones_not_beside_wheat(suggestion))
           continue;
 
