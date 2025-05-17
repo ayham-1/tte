@@ -41,7 +41,10 @@
  * neighbors
  *  - [x] cap wheat group growth so that more windmills have more wheats
  *  - [-] allow space beside wheat groups for windmills
- *  - [ ] make sure wheats are not enclosed using empty tiles counting
+ *  - [x] make sure wheats are not enclosed using empty tiles counting
+ *  - [ ] when allowing for empty tiles beside wheat groups for windmills, check
+ *  - [ ] make room for wheat groups of size smaller than optimal even if 2
+ * windmills are present for coverability
  *
  * Current:
  *
