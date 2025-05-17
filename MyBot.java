@@ -1688,14 +1688,27 @@ public class MyBot extends ChallengeBot {
       boolean apply_windmills_groupings(PlacementSuggestion suggestion) {
         // [rule] enforce windmills groupings
         if (suggestion.info.type == TileType.Windmill) {
+          boolean has_wheat = false;
+          for (var carea : suggestion.coord.getArea(3)) {
+            var ct = this.bot.map.get(carea);
+            if (ct == null)
+              continue;
+            if (ct.type == TileType.Wheat) {
+              has_wheat = true;
+              break;
+            }
+          }
+          if (has_wheat)
+            return false;
+
           for (var windmill : this.bot.state.windmills) {
             int windmills_closeby = 1;
-            if (windmill.coord.distance(suggestion.coord) <= 3)
+            if (windmill.coord.distance(suggestion.coord) <= 6)
               windmills_closeby++;
             for (var other : this.bot.state.windmills) {
               if (windmill == other)
                 continue;
-              if (other.coord.distance(windmill.coord) <= 3)
+              if (other.coord.distance(windmill.coord) <= 6)
                 windmills_closeby++;
             }
 
@@ -2144,8 +2157,8 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_windmills_not_beside_forest(suggestion))
           continue;
 
-        if (this.rules.apply_windmills_groupings(suggestion))
-          continue;
+        // if (this.rules.apply_windmills_groupings(suggestion))
+        //   continue;
 
         // if (this.rules.apply_avoid_windmills(suggestion) && this.bot.round <=
         // 6)
