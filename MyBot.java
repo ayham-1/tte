@@ -50,39 +50,6 @@
  *
  * TODOs:
  *
- * LEARN FROM:
- *  - 16450047910414762407
- *
- * PROBLEMATIC SEEDS:
- *
- * Bob II:
- *  - 4544524656413520667
- *  - 15232417153697053033
- *  - 6476645629748188223
- *  - 17568238662914506546
- *  - 4905031204093094641
- *  - 13159963882866694334
- *  - 6196504161327325917
- *  - 4651505693100974723
- *
- *  - WTF IS HAPPENING HEREEEEE
- *  - 11201007578510289452
- *  - 18278146962012266910
- *
- *
- * Bob I:
- *  - 206291997783329192
- *  - 11841930331551995945
- *  - 15983273597267596929
- *  - 3670905267582609409
- *  - 3833241609646726404
- *  - 13643824703136673852
- *  - 4185536861074494110
- *  - 9404526250308863753
- *  - 7166311343533290299
- *  - 10657404372395100657
- *  - 1524678160230742459
- *
  * */
 
 import java.util.*;
@@ -1054,7 +1021,6 @@ public class MyBot extends ChallengeBot {
       if (PRINT_DEBUG)
         System.out.println("[sdelta] " + suggestion.growth_delta.toString());
 
-      // i'm sorry for this atrocity...
       if (suggestion.info.associated_group != null) {
         if (suggestion.info.associated_group instanceof WheatGroup)
           this.bot.state.wheats.add(suggestion.info.associated_group);
@@ -1106,6 +1072,8 @@ public class MyBot extends ChallengeBot {
         }
       }
 
+      if (PRINT_DEBUG)
+        System.out.println("[score] " + suggestion.growth_delta);
       this.bot.place_tile(suggestion.coord, suggestion.info);
     }
 
@@ -1954,7 +1922,7 @@ public class MyBot extends ChallengeBot {
         return false;
       }
 
-      boolean apply_avoid_forest(PlacementSuggestion suggestion) {
+      boolean apply_avoid_forest(PlacementSuggestion suggestion, int sz) {
         // [rule] avoid forest
         if (suggestion.info.type == TileType.Forest ||
             suggestion.info.type == TileType.Wheat)
@@ -1970,7 +1938,7 @@ public class MyBot extends ChallengeBot {
 
           if (ct.type == TileType.Forest) {
             if (ct.associated_group.does_block(suggestion.coord, 0) &&
-                ct.associated_group.tiles.size() < 6 &&
+                ct.associated_group.tiles.size() < sz &&
                 !(suggestion.info.type == TileType.Beehive &&
                   ct.associated_group.coords_placable.size() > 2)) {
               if (PRINT_DEBUG)
@@ -2113,36 +2081,19 @@ public class MyBot extends ChallengeBot {
         System.out.println("[round] " + this.bot.round);
 
       for (var suggestion : this.suggestions.reversed()) {
-        // if (this.bot.round <= 1 &&
         if (this.rules.apply_wheat_groups_size(suggestion, 0, 9))
           continue;
 
         if (this.rules.apply_forest_groups_size(suggestion, 0, 7))
           continue;
 
-        if (this.bot.round > 0 && this.rules.apply_avoid_forest(suggestion))
+        if (this.bot.round > 0 && this.rules.apply_avoid_forest(suggestion, 7))
           continue;
 
         if (this.bot.round >= 1 && this.rules.apply_wheat_neighbors(suggestion))
           continue;
 
-        // if (this.rules.apply_windmill_must_have_wheat(suggestion) &&
-        //     this.bot.round >= 1)
-        //   continue;
-
-        // if (/*!(is_wheat_beside_windmill && this.bot.round >= 4) &&*/
-        // if (this.bot.round >= 5 &&
-        //    this.rules.apply_wheat_groups_size(suggestion, 0, 5)) {
-        //  new_wheat_group_forced_secluded = true;
-        //  continue;
-        //}
-
-        // if (this.bot.round >= 8 &&
-        //     this.rules.apply_wheat_groups_size(suggestion, 0, 9))
-        //   continue;
-
-        if (/*!(is_wheat_beside_windmill && this.bot.round >= 5) &&*/
-            this.rules.apply_wheat_not_to_join_other_together(suggestion))
+        if (this.rules.apply_wheat_not_to_join_other_together(suggestion))
           continue;
 
         if (this.rules.apply_dont_block_wheats(suggestion))
@@ -2157,20 +2108,6 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_windmills_not_beside_forest(suggestion))
           continue;
 
-        // if (this.rules.apply_windmills_groupings(suggestion))
-        //   continue;
-
-        // if (this.rules.apply_avoid_windmills(suggestion) && this.bot.round <=
-        // 6)
-        //   continue;
-
-        // if (this.rules.apply_wheats_near_windmills_when_possible(suggestion))
-        //   continue;
-
-        // if (this.rules.apply_beehives_not_beside_windmills(suggestion) &&
-        //     this.bot.round >= 4)
-        //   continue;
-
         if (this.rules.apply_dhouse_less_than_3(suggestion))
           continue;
 
@@ -2180,10 +2117,6 @@ public class MyBot extends ChallengeBot {
         if (this.bot.round >= 1 && this.bot.round <= 9 &&
             this.rules.apply_stones_not_beside_wheat(suggestion))
           continue;
-
-        // if (this.bot.round >= 6 &&
-        //     this.rules.apply_stones_not_beside_windmill(suggestion))
-        //   continue;
 
         best = suggestion;
         break;
@@ -2308,8 +2241,7 @@ public class MyBot extends ChallengeBot {
       return;
 
     // redraw when we are winning
-    if (this.round_time_left >= 5 && this.world.getHand().isEmpty() &&
-        this.director.do_wealth_redraw())
+    if (this.world.getHand().isEmpty() && this.director.do_wealth_redraw())
       this.controller.redraw();
 
     if (!this.controller.actionPossible())
