@@ -356,7 +356,7 @@ public class MyBot extends ChallengeBot {
       //   return false;
 
       total_count = coords.size();
-      if (total_count < needed) {
+      if (total_count < needed && total_count != 1) {
         this.bot.map.remove(coord);
         if (was_in_cplacable)
           this.coords_placable.add(coord);
@@ -879,10 +879,16 @@ public class MyBot extends ChallengeBot {
   abstract class Director {
     MyBot bot;
     RuleSet rules;
-    int redraw_counter = 0;
 
     TileType chosen_tile;
     ArrayList<PlacementSuggestion> suggestions = new ArrayList<>();
+
+    int redraw_counter = 0;
+    Map<TileType, Integer> deck_counter = new LinkedHashMap<>();
+    Map<TileType, Integer> hand = new LinkedHashMap<>();
+
+    Map<TileType, Integer> bought_redraw = new LinkedHashMap<>();
+    Map<TileType, Integer> forced_redraw = new LinkedHashMap<>();
 
     abstract boolean do_redraw();
     abstract int redraw_max_times();
@@ -891,6 +897,56 @@ public class MyBot extends ChallengeBot {
     Director(MyBot bot) {
       this.bot = bot;
       this.rules = new RuleSet(this.bot);
+    }
+
+    void did_bought_redraw() {
+      this.bought_redraw.clear();
+      this.bought_redraw.put(TileType.Wheat, 2);
+      this.bought_redraw.put(TileType.Forest, 2);
+      this.bought_redraw.put(TileType.SmallHouse, 2);
+      this.bought_redraw.put(TileType.StoneRocks, 1);
+      if (this.bot.round >= 1) {
+        this.bought_redraw.put(TileType.Beehive, 3);
+        this.bought_redraw.put(TileType.DoubleHouse, 3);
+        this.bought_redraw.put(TileType.StoneHill, 2);
+        this.bought_redraw.put(TileType.StoneQuarry, 4);
+      }
+      if (this.bot.round >= 2) {
+        this.bought_redraw.put(TileType.Windmill, 3);
+        this.bought_redraw.put(TileType.StoneMountain, 3);
+      }
+
+      this.bought_redraw.forEach(
+          (key,
+           value) -> this.deck_counter.merge(key, value, (v1, v2) -> v1 + v2));
+    }
+
+    void did_forced_redraw() {
+      this.forced_redraw.clear();
+      this.forced_redraw.put(TileType.Grass, 2);
+      this.forced_redraw.put(TileType.Wheat, 5);
+      this.forced_redraw.put(TileType.Forest, 5);
+      this.forced_redraw.put(TileType.SmallHouse, 5);
+      this.forced_redraw.put(TileType.StoneRocks, 5);
+      if (this.bot.round >= 1) {
+        this.forced_redraw.put(TileType.Beehive, 4);
+        this.forced_redraw.put(TileType.DoubleHouse, 4);
+        this.forced_redraw.put(TileType.StoneHill, 4);
+        this.forced_redraw.put(TileType.StoneQuarry, 5);
+      }
+      if (this.bot.round >= 2) {
+        this.forced_redraw.put(TileType.Windmill, 3);
+        this.forced_redraw.put(TileType.StoneMountain, 3);
+      }
+      if (this.bot.round >= 3) {
+        this.forced_redraw.put(TileType.Moai, 2);
+        this.forced_redraw.put(TileType.Marketplace, 4);
+      }
+      if (this.bot.round == 3) {
+        this.forced_redraw.put(TileType.Marketplace, 1);
+      }
+      this.forced_redraw.forEach(
+          (key, value) -> this.deck_counter.merge(key, value, (x, y) -> x + y));
     }
 
     void new_card() { this.suggestions.clear(); }
@@ -1074,7 +1130,11 @@ public class MyBot extends ChallengeBot {
 
       if (PRINT_DEBUG)
         System.out.println("[score] " + suggestion.growth_delta);
+
       this.bot.place_tile(suggestion.coord, suggestion.info);
+
+      // update deck counter
+      this.deck_counter.merge(suggestion.info.type, -1, (x, y) -> x + y);
     }
 
     Score get_global_score() {
@@ -1338,15 +1398,9 @@ public class MyBot extends ChallengeBot {
                 cplacable_windmill_usable++;
             }
 
-            boolean enclosed = cplacable_windmill_usable <= 2;
-
-            // if (!enclosed) {
-            //   boolean cplacable_reaches_all_wheats = false;
-            //   for (var ctiles : ct.associated_group.tiles.keySet()) {
-            //     for (var carea : cplacable.getArea(3)) {
-            //     }
-            //   }
-            // }
+            int needed_windmills = 2 - ct.windmills;
+            // boolean enclosed = cplacable_windmill_usable <= 2;
+            boolean enclosed = cplacable_windmill_usable < needed_windmills;
 
             boolean at_border = false;
             for (var cneighbor : cring.getRing(1))
@@ -1428,15 +1482,15 @@ public class MyBot extends ChallengeBot {
       boolean apply_dont_block_wheats(PlacementSuggestion suggestion) {
         // [rule] don't block wheats
 
-        if (suggestion.info.type == TileType.Windmill) {
-          for (var cring : suggestion.coord.getRing(1)) {
-            var ct = this.bot.map.get(cring);
-            if (ct == null)
-              continue;
-            if (ct.type == TileType.Wheat)
-              return false;
-          }
-        }
+        // if (suggestion.info.type == TileType.Windmill) {
+        //   for (var cring : suggestion.coord.getRing(1)) {
+        //     var ct = this.bot.map.get(cring);
+        //     if (ct == null)
+        //       continue;
+        //     if (ct.type == TileType.Wheat)
+        //       return false;
+        //   }
+        // }
 
         for (var wheat : this.bot.state.wheats) {
           // int min_windmills = Integer.MAX_VALUE;
@@ -1653,7 +1707,8 @@ public class MyBot extends ChallengeBot {
         return true;
       }
 
-      boolean apply_windmills_groupings(PlacementSuggestion suggestion) {
+      boolean apply_windmills_groupings(PlacementSuggestion suggestion,
+                                        int grouping_size) {
         // [rule] enforce windmills groupings
         if (suggestion.info.type == TileType.Windmill) {
           boolean has_wheat = false;
@@ -1671,25 +1726,15 @@ public class MyBot extends ChallengeBot {
 
           for (var windmill : this.bot.state.windmills) {
             int windmills_closeby = 1;
-            if (windmill.coord.distance(suggestion.coord) <= 6)
+            if (windmill.coord.distance(suggestion.coord) <= grouping_size)
               windmills_closeby++;
             for (var other : this.bot.state.windmills) {
               if (windmill == other)
                 continue;
-              if (other.coord.distance(windmill.coord) <= 6)
+              if (other.coord.distance(windmill.coord) <= grouping_size)
                 windmills_closeby++;
             }
 
-            // boolean can_force_2 = false;
-            // for (var carea : windmill.coord.getRing(1)) {
-            //   var ct = this.bot.map.get(carea);
-            //   if (ct == null) {
-            //     can_force_2 = true;
-            //     break;
-            //   }
-            // }
-
-            // System.out.println("closeby: " + windmills_closeby);
             if (windmills_closeby > 2) {
               if (PRINT_DEBUG)
                 System.out.println("[rule] enforce windmills groupings");
@@ -1800,7 +1845,6 @@ public class MyBot extends ChallengeBot {
 
       boolean apply_dhouse_less_than_3(PlacementSuggestion suggestion) {
         // [rule] doublehouses don't have more than 3
-        boolean rule_dhouses_neighbors = false;
         if (suggestion.info.type == TileType.DoubleHouse ||
             suggestion.info.type == TileType.SmallHouse) {
           for (var repr : this.bot.state.dhouses) {
@@ -1816,17 +1860,13 @@ public class MyBot extends ChallengeBot {
             if (suggestion.coord.distance(repr.coord) <= 1)
               counter++;
             if (counter > 3) {
-              rule_dhouses_neighbors = true;
-
               if (PRINT_DEBUG)
                 System.out.println(
                     "[rule] doublehouses don't have more than 3");
-              break;
+              return true;
             }
           }
         }
-        if (rule_dhouses_neighbors)
-          return true;
         return false;
       }
 
@@ -2017,7 +2057,7 @@ public class MyBot extends ChallengeBot {
         if (this.rules.apply_windmills_per_wheat(suggestion))
           continue;
 
-        if (this.rules.apply_windmills_groupings(suggestion))
+        if (this.rules.apply_windmills_groupings(suggestion, 3))
           continue;
 
         if (this.rules.apply_wheats_near_windmills_when_possible(suggestion))
@@ -2051,9 +2091,6 @@ public class MyBot extends ChallengeBot {
      * sometimes rules are meant to be broken, and this dictator
      * calculates when to break them. sometimes rules are outdated
      * mid-game, or sometimes rules are meant for late-game
-     *
-     * Rules:
-     *  read the code you lazy
      * */
 
     DynamicDictator(MyBot bot) { super(bot); }
@@ -2065,12 +2102,30 @@ public class MyBot extends ChallengeBot {
 
     @Override
     boolean do_redraw() {
-      return this.do_redraw(1.0f / 5.0f, 0.0f);
-    }
+      // does a riskier redraw when we know that the deck potentially has
+      // food tiles and that we are falling behind on food production
+      boolean costly_redraw = false;
+      var cost = this.bot.world.getRedrawCosts();
+      boolean redrawable =
+          this.bot.resource_current.money >= cost.money &&
+          this.bot.resource_current.food >= cost.food &&
+          this.bot.resource_current.materials >= cost.materials;
 
-    // state
-    boolean new_wheat_group_forced_secluded = false;
-    int start_new_wheat_group_for_windmills = 2;
+      var crnt = this.bot.resource_current;
+
+      if (crnt.food < crnt.materials && crnt.food < crnt.money) {
+        if ((this.deck_counter.containsKey(TileType.Wheat) &&
+             this.deck_counter.get(TileType.Wheat) > 0) ||
+            (this.deck_counter.containsKey(TileType.Windmill) &&
+             this.deck_counter.get(TileType.Windmill) > 0) ||
+            (this.deck_counter.containsKey(TileType.Beehive) &&
+             this.deck_counter.get(TileType.Beehive) > 0))
+          costly_redraw = true;
+      }
+      return (costly_redraw && redrawable &&
+              this.do_redraw(4.0f / 5.0f, 0.5f)) ||
+          this.do_redraw(1.0f / 5.0f, 0.15f);
+    }
 
     @Override
     PlacementSuggestion pick() {
@@ -2106,6 +2161,9 @@ public class MyBot extends ChallengeBot {
           continue;
 
         if (this.rules.apply_windmills_not_beside_forest(suggestion))
+          continue;
+
+        if (this.rules.apply_windmills_groupings(suggestion, 4))
           continue;
 
         if (this.rules.apply_dhouse_less_than_3(suggestion))
@@ -2189,6 +2247,7 @@ public class MyBot extends ChallengeBot {
 
       // TODO(ayham-1): maybe this is not needed could be better
       this.director.new_card();
+      this.director.did_forced_redraw();
     }
 
     // calculate per hand growth delta
@@ -2213,15 +2272,10 @@ public class MyBot extends ChallengeBot {
     // always redraw when free
     if (!this.coords_placable.isEmpty() && world.getRedrawTime() <= 0) {
       controller.redraw();
+      this.director.did_forced_redraw();
       return;
     }
 
-    // always collect rewards no matter what
-    for (var reward : world.getRewards()) {
-      controller.collectReward(reward.getCoordinate());
-      if (!controller.actionPossible())
-        break;
-    }
     if (!controller.actionPossible())
       return;
 
@@ -2241,15 +2295,19 @@ public class MyBot extends ChallengeBot {
       return;
 
     // redraw when we are winning
-    if (this.world.getHand().isEmpty() && this.director.do_wealth_redraw())
+    if (this.world.getHand().isEmpty() && this.director.do_wealth_redraw()) {
       this.controller.redraw();
+      this.director.did_bought_redraw();
+    }
 
     if (!this.controller.actionPossible())
       return;
 
     // redraw when we are projected to be winning
-    if (this.round < 5 && this.director.do_redraw())
+    if (this.round < 5 && this.director.do_redraw()) {
       this.controller.redraw();
+      this.director.did_bought_redraw();
+    }
 
     if (!this.controller.actionPossible())
       return;
@@ -2274,6 +2332,16 @@ public class MyBot extends ChallengeBot {
       }
       if (suggestion != null)
         this.director.accept_suggestion(suggestion);
+    }
+
+    // the higher the production, the more rewards, so do them last,
+    // when we have expended our growth for this round
+    if (!controller.actionPossible())
+      return;
+    for (var reward : world.getRewards()) {
+      controller.collectReward(reward.getCoordinate());
+      if (!controller.actionPossible())
+        break;
     }
 
     // only update marketplaces if actions are leftover, should be in the
